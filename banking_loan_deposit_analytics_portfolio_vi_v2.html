@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Phân Tích Tín Dụng & Huy Động Vốn — Hồ Sơ BI Ngân Hàng</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Nav & hero — vẫn giữ navy đậm để sang trọng */
+  --navy:#0d2340;--navy2:#162e50;--navy3:#1e3d68;
+  /* Accent gold */
+  --gold:#b8882a;--gold-l:#d4a84a;--gold-ll:#f0d090;
+  /* Semantic */
+  --red:#c0362b;--red-l:#fdecea;
+  --green:#1a7a50;--green-l:#e4f5ec;
+  --blue:#1a5fb0;--blue-l:#e8f0fc;
+  --amber:#b87020;--amber-l:#fef3e2;
+  /* Surface — nhạt, sạch */
+  --bg:#f0f3f8;
+  --surface:#ffffff;
+  --surface2:#f5f7fb;
+  --white:#ffffff;
+  --border:rgba(13,35,64,0.1);
+  --border2:rgba(184,136,42,0.25);
+  --shadow:0 1px 8px rgba(13,35,64,0.08);
+  --text-primary:#0d2340;
+  --text-secondary:#3a5070;
+  --text-muted:#6a82a0;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh}
+
+nav{background:#0d2340;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:200;border-bottom:1px solid var(--border2);backdrop-filter:blur(8px)}
+.nav-brand{font-family:'Playfair Display',serif;color:var(--gold);font-size:13px;letter-spacing:0.06em;white-space:nowrap}
+.nav-tabs{display:flex;gap:1px;flex-wrap:wrap}
+.nav-tab{background:none;border:none;color:rgba(255,255,255,0.42);cursor:pointer;padding:5px 9px;font-size:11px;font-family:'DM Sans',sans-serif;border-radius:4px;transition:all 0.18s;letter-spacing:0.01em}
+.nav-tab:hover{color:#fff;background:rgba(255,255,255,0.07)}
+.nav-tab.active{color:var(--gold);background:rgba(201,168,76,0.12)}
+
+.section{display:none;padding:2.5rem 2rem;max-width:1020px;margin:0 auto}
+.section.active{display:block}
+h1.page-title{font-family:'Playfair Display',serif;font-size:27px;font-weight:700;color:var(--text-primary);margin-bottom:0.2rem}
+.page-subtitle{font-size:11.5px;color:var(--text-muted);margin-bottom:2rem;letter-spacing:0.04em;text-transform:uppercase}
+
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem;box-shadow:var(--shadow)}
+.card-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:500;color:var(--text-primary);margin-bottom:0.85rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;background:rgba(201,168,76,0.15);color:var(--gold-l);padding:2px 8px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase}
+.badge-risk{background:var(--red-l);color:#8a1a12}
+.badge-green{background:var(--green-l);color:#145a38}
+.badge-blue{background:var(--blue-l);color:#0d3a80}
+
+.hero{background:var(--navy);border-radius:16px;padding:2.75rem 2.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:280px;height:280px;border-radius:50%;border:1px solid rgba(184,150,62,0.1)}
+.hero::after{content:'';position:absolute;bottom:-50px;right:100px;width:150px;height:150px;border-radius:50%;border:1px solid rgba(184,150,62,0.06)}
+.hero-eyebrow{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem}
+.hero h1{font-family:'Playfair Display',serif;font-size:28px;color:#fff;line-height:1.25;margin-bottom:1rem}
+.hero p{font-size:13.5px;color:rgba(255,255,255,0.6);line-height:1.75;max-width:560px;margin-bottom:1.5rem}
+.hero-stats{display:flex;gap:2.5rem;flex-wrap:wrap}
+.hero-stat .num{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold)}
+.hero-stat .lbl{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px}
+
+/* Dải màu đỏ-vàng đặc trưng ngân hàng VN */
+.vn-banner{background:linear-gradient(90deg,var(--red) 0%,#8b1a10 50%,var(--navy) 100%);height:4px;border-radius:2px;margin-bottom:1.5rem}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.5rem}
+.kpi-card{background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:1rem;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold)}
+.kpi-card.risk::before{background:var(--red)}
+.kpi-card.pos::before{background:var(--green)}
+.kpi-card.info::before{background:var(--blue)}
+.kpi-label{font-size:10px;color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:5px}
+.kpi-value{font-family:'Playfair Display',serif;font-size:20px;color:var(--text-primary)}
+.kpi-delta{font-size:10.5px;margin-top:4px}
+.kpi-delta.up{color:#1a7a50}
+.kpi-delta.down{color:#c0362b}
+.kpi-delta.neu{color:#1a5fb0}
+
+.wireframe{background:var(--surface2);border-radius:10px;padding:1.25rem;margin-bottom:1rem;border:0.5px solid var(--border)}
+.wireframe-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.wireframe-title{font-size:12.5px;font-weight:500;color:var(--text-primary)}
+.wireframe-row{display:flex;gap:10px;margin-bottom:10px}
+.wf-box{background:var(--white);border-radius:7px;padding:10px;border:0.5px solid var(--border);font-size:10.5px;color:var(--text-muted);text-align:center;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.wf-box .wf-label{font-weight:500;color:var(--text-primary);font-size:9.5px;margin-top:4px;text-transform:uppercase;letter-spacing:0.04em}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;padding:8px 12px;font-size:10.5px;font-weight:500;color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;border-bottom:0.5px solid var(--border)}
+td{padding:10px 12px;border-bottom:0.5px solid var(--border);color:var(--text-primary);vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.03)}
+td.formula{font-family:monospace;font-size:10.5px;background:rgba(43,125,233,0.12);border-radius:4px;padding:3px 7px;color:#0d3a80;white-space:nowrap;border:0.5px solid rgba(43,125,233,0.2)}
+
+.dax-block{background:var(--navy2);border-radius:10px;padding:1.25rem;margin-bottom:1rem;border:0.5px solid rgba(255,255,255,0.06)}
+.dax-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:7px}
+.dax-code{font-family:'Courier New',monospace;font-size:11.5px;color:#b3e5d0;line-height:1.7;white-space:pre-wrap}
+.dax-comment{color:rgba(255,255,255,0.28)}
+.dax-kw{color:#80cbc4}
+.dax-fn{color:#fff59d}
+
+.insight-card{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:15px;margin-bottom:14px;box-shadow:var(--shadow);transition:border-color 0.2s}
+.insight-card:hover{border-color:var(--border2)}
+.insight-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.insight-num{font-size:10px;color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase}
+.insight-title{font-size:13.5px;font-weight:500;color:var(--text-primary);line-height:1.35;margin-top:2px}
+.insight-badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:500;white-space:nowrap;flex-shrink:0;margin-left:8px}
+.ib-up{background:var(--green-l);color:#145a38}
+.ib-down{background:var(--red-l);color:#8a1a12}
+.ib-neu{background:var(--blue-l);color:#0d3a80}
+.insight-note{font-size:11.5px;color:var(--text-muted);margin-top:8px;line-height:1.5}
+.insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px}
+.chart-wrap{position:relative;width:100%}
+.h90{height:90px}.h100{height:100px}.h110{height:110px}.h120{height:120px}
+
+.schema-table{background:var(--surface2);border:0.5px solid var(--border);border-radius:9px;padding:.9rem;min-width:155px}
+.schema-table-header{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;padding-bottom:5px;border-bottom:0.5px solid var(--border);margin-bottom:5px}
+.schema-table-header.fact{color:var(--red)}
+.schema-table-header.dim{color:var(--blue)}
+.schema-field{font-size:10.5px;color:var(--text-muted);padding:1.5px 0}
+.schema-field.pk{color:var(--gold);font-weight:500}
+.schema-field.fk{color:var(--text-secondary)}
+.schema-field.branch-parent{color:#1a7a50;font-weight:500}
+.schema-field.branch-child{color:#1a5fb0}
+
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:7px;font-size:11px;color:var(--text-muted)}
+.leg-dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
+.bar-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.bar-lbl{font-size:10.5px;color:var(--text-muted);width:90px;text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:10px;background:rgba(13,35,64,0.08);border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px}
+.bar-val{font-size:10.5px;color:var(--text-primary);font-weight:500;width:50px}
+.stat-row{display:flex;gap:10px;margin-bottom:10px}
+.stat-box{flex:1;background:var(--surface2);border-radius:8px;padding:8px 11px;border:0.5px solid var(--border)}
+.stat-num{font-size:19px;font-weight:500;color:var(--text-primary)}
+.stat-lbl{font-size:10px;color:var(--text-muted);margin-top:2px}
+.progress-bar{background:rgba(13,35,64,0.08);border-radius:8px;height:14px;overflow:hidden;margin-top:7px}
+.progress-fill{height:100%;border-radius:8px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.outcome-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-top:1rem}
+.outcome-card{background:linear-gradient(135deg,var(--navy2) 0%,var(--navy) 100%);border:0.5px solid var(--border2);border-radius:10px;padding:1.2rem;color:#fff}
+.outcome-num{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold)}
+.outcome-label{font-size:11.5px;color:rgba(255,255,255,0.5);margin-top:4px;line-height:1.4}
+.pill{display:inline-block;font-size:10px;padding:3px 8px;border-radius:20px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;margin:3px}
+.pill-gold{background:rgba(201,168,76,0.15);color:var(--gold-l)}
+.pill-blue{background:var(--blue-l);color:#0d3a80}
+.pill-green{background:var(--green-l);color:#145a38}
+.pill-red{background:var(--red-l);color:#8a1a12}
+.ws-hero{background:linear-gradient(135deg,var(--navy2) 0%,var(--navy) 100%);border:0.5px solid var(--border2);border-radius:14px;padding:3rem 2rem;text-align:center;margin-bottom:1.25rem}
+.ws-hero h2{font-family:'Playfair Display',serif;font-size:25px;color:#fff;margin-bottom:.75rem;line-height:1.3}
+.ws-hero p{font-size:13.5px;color:rgba(255,255,255,0.6);margin-bottom:1.25rem;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.7}
+.btn-primary{background:var(--gold);color:var(--text-primary);border:none;padding:10px 22px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-block;text-decoration:none;transition:opacity 0.15s}
+.btn-primary:hover{opacity:.88}
+.alert-box{background:var(--amber-l);border:0.5px solid rgba(184,112,32,0.3);border-radius:8px;padding:12px 14px;font-size:12px;color:#8a5010;margin-bottom:8px;display:flex;gap:8px;align-items:flex-start}
+.alert-box.danger{background:var(--red-l);border-color:rgba(192,54,43,0.3);color:#8a1a12}
+
+/* NHÃN NHNN */
+.nhnn-tag{display:inline-flex;align-items:center;gap:5px;background:var(--red-l);border:0.5px solid rgba(192,54,43,0.25);border-radius:4px;padding:2px 8px;font-size:10px;color:#8a1a12;font-weight:500;letter-spacing:0.03em}
+.sbv-note{background:var(--blue-l);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;padding:10px 14px;font-size:12px;color:#0d3a80;line-height:1.6;margin-bottom:8px}
+/* Branch hierarchy */
+.branch-connector{border-left:1.5px solid rgba(95,204,158,0.35);margin-left:8px;padding-left:10px}
+
+@media(max-width:640px){
+  nav{padding:0 .75rem}
+  .nav-brand{font-size:11.5px}
+  .nav-tab{padding:4px 5px;font-size:10px}
+  .section{padding:1.5rem .75rem}
+  .two-col,.three-col{grid-template-columns:1fr}
+  .hero h1{font-size:21px}
+  .hero-stats{gap:1.5rem}
+  .insights-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">Báo Cáo Quản Trị — NHTMCP</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="show('exec',this)">Tổng Quan</button>
+    <button class="nav-tab" onclick="show('biz',this)">Nghiệp Vụ</button>
+    <button class="nav-tab" onclick="show('data',this)">Mô Hình DL</button>
+    <button class="nav-tab" onclick="show('kpi',this)">KPI</button>
+    <button class="nav-tab" onclick="show('dash',this)">Dashboard</button>
+    <button class="nav-tab" onclick="show('dax',this)">DAX</button>
+    <button class="nav-tab" onclick="show('dataset',this)">Dữ Liệu</button>
+    <button class="nav-tab" onclick="show('insights',this)">Insights</button>
+    <button class="nav-tab" onclick="show('case',this)">Case Study</button>
+    <button class="nav-tab" onclick="show('web',this)">Website</button>
+  </div>
+</nav>
+
+<!-- ══ PHẦN 1: TÓM TẮT ĐIỀU HÀNH ══ -->
+<div class="section active" id="sec-exec">
+  <p class="page-subtitle">Phần 1 / 10 · BI Ngân Hàng · Cấp Độ Tư Vấn</p>
+  <h1 class="page-title">Tóm Tắt Điều Hành</h1>
+  <div class="vn-banner"></div>
+
+  <div class="hero">
+    <p class="hero-eyebrow">Bảo Mật — Trình Bày Cho Ban Tổng Giám Đốc · Hội Đồng Quản Trị</p>
+    <h1>Dashboard Phân Tích Tín Dụng & Huy Động Vốn</h1>
+    <p>Giải pháp Power BI cấp tư vấn cung cấp cái nhìn thống nhất về hiệu suất danh mục cho vay, huy động vốn, hiệu quả chi nhánh, phân khúc khách hàng và giám sát nợ xấu real-time — phù hợp chuẩn báo cáo NHNN và quy trình ngân hàng thương mại Việt Nam.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">6</div><div class="lbl">Trang Dashboard</div></div>
+      <div class="hero-stat"><div class="num">25+</div><div class="lbl">Chỉ Số DAX</div></div>
+      <div class="hero-stat"><div class="num">20+</div><div class="lbl">Insights Tự Động</div></div>
+      <div class="hero-stat"><div class="num">5</div><div class="lbl">Bảng Fact</div></div>
+      <div class="hero-stat"><div class="num">7</div><div class="lbl">Bảng Dimension</div></div>
+    </div>
+  </div>
+
+  <div class="sbv-note">
+    <strong>Ghi chú tuân thủ NHNN:</strong> Dashboard được thiết kế theo chuẩn phân loại nợ Thông tư 02/2013/TT-NHNN (sửa đổi bổ sung Thông tư 03/2023/TT-NHNN) — 5 nhóm nợ, tỷ lệ LDR theo Thông tư 22/2019/TT-NHNN, và các chỉ số an toàn vốn theo Basel II.
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Thách Thức Kinh Doanh <span class="badge badge-risk">Vấn Đề</span></div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">Ngân hàng đang quản lý báo cáo tín dụng và huy động vốn trên các hệ thống tách biệt. Bộ phận tín dụng xuất dữ liệu từ hệ thống CoreBanking, bộ phận huy động vốn dùng Excel riêng, bộ phận rủi ro lấy số liệu từ hệ thống phân loại nợ. Ban lãnh đạo nhận báo cáo tổng hợp chậm 2–3 tuần sau kỳ quyết toán. Phó TGĐ Phụ Trách Tín Dụng không theo dõi được tỷ lệ nợ xấu theo thời gian thực. Giám đốc Chi Nhánh không có công cụ so sánh hiệu suất với toàn hệ thống.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Giải Pháp Đề Xuất <span class="badge">Chuyển Đổi BI</span></div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">Triển khai Power BI Banking Dashboard 6 trang với mô hình star schema đa-fact tích hợp dữ liệu từ CoreBanking (T24/Temenos, FPT.BankingOS, hoặc tương đương), hệ thống quản lý tín dụng CRM, và hệ thống phân loại nợ. Xây dựng khung KPI ngân hàng gồm 25+ công thức DAX phù hợp chuẩn NHNN. Phân quyền Row-Level Security theo cấp: Chi nhánh → Vùng → Hội sở.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Tác Động Kinh Doanh Dự Kiến</div>
+    <div class="outcome-grid">
+      <div class="outcome-card"><div class="outcome-num">Real-time</div><div class="outcome-label">Giám sát nợ xấu hàng ngày thay vì báo cáo cuối tháng</div></div>
+      <div class="outcome-card"><div class="outcome-num">~75%</div><div class="outcome-label">Giảm công sức lập báo cáo thủ công tại chi nhánh</div></div>
+      <div class="outcome-card"><div class="outcome-num">1 Nền Tảng</div><div class="outcome-label">Hợp nhất tín dụng + huy động + rủi ro vào một dashboard</div></div>
+      <div class="outcome-card"><div class="outcome-num">20+</div><div class="outcome-label">Cảnh báo tự động cho Ban lãnh đạo hành động kịp thời</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Lợi Ích Theo Chức Danh</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Lãnh Đạo</th><th>Lợi Ích Chính</th><th>Trang Dashboard</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Tổng Giám Đốc (CEO)</strong></td><td style="font-size:12px;">Bức tranh toàn cảnh ngân hàng trong 30 giây: tín dụng, huy động, LDR, NPL</td><td><span class="badge badge-blue">Tổng Quan Điều Hành</span></td></tr>
+          <tr><td><strong>Phó TGĐ Tài Chính (CFO)</strong></td><td style="font-size:12px;">Thu nhập lãi thuần, chênh lệch lãi suất, tỷ lệ LDR theo Thông tư 22</td><td><span class="badge badge-blue">Tổng Quan + HĐV</span></td></tr>
+          <tr><td><strong>Phó TGĐ Rủi Ro (CRO)</strong></td><td style="font-size:12px;">Tỷ lệ nợ xấu real-time, phân nhóm nợ TT02, mức trích lập dự phòng</td><td><span class="badge badge-risk">Quản Lý Rủi Ro</span></td></tr>
+          <tr><td><strong>GĐ Khối Bán Lẻ</strong></td><td style="font-size:12px;">Xếp hạng chi nhánh, tỷ lệ cross-sell, phân khúc khách hàng cá nhân</td><td><span class="badge badge-green">Chi Nhánh + KH</span></td></tr>
+          <tr><td><strong>Giám Đốc Chi Nhánh</strong></td><td style="font-size:12px;">KPI chi nhánh so toàn hệ thống, cơ cấu sản phẩm, danh mục khách hàng</td><td><span class="badge badge-blue">Hiệu Suất Chi Nhánh</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PHẦN 2: NGHIỆP VỤ NGÂN HÀNG ══ -->
+<div class="section" id="sec-biz">
+  <p class="page-subtitle">Phần 2 / 10</p>
+  <h1 class="page-title">Nghiệp Vụ Ngân Hàng VN</h1>
+  <div class="vn-banner"></div>
+
+  <div class="card">
+    <div class="card-title">Tại Sao Phân Tích Tín Dụng & HĐV Là Ưu Tiên Số 1</div>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.8;margin-bottom:1rem;">Ngân hàng thương mại Việt Nam kinh doanh trên chênh lệch lãi suất (NIM): khoản chênh giữa lãi suất cho vay và lãi suất huy động. Trong bối cảnh NHNN thắt chặt tỷ lệ tín dụng/GDP, áp lực nợ xấu hậu COVID, và cạnh tranh huy động vốn ngày càng gay gắt, Ban lãnh đạo cần thông tin ra quyết định trong ngày — không phải sau 3 tuần.</p>
+    <div class="three-col">
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-coin" aria-hidden="true"></i> Quản Lý Danh Mục Tín Dụng</div>
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">Theo dõi tốc độ giải ngân, tăng trưởng dư nợ, cơ cấu sản phẩm và lịch đáo hạn. Phát hiện sớm khi danh mục tập trung quá mức vào một ngành, vùng, hoặc nhóm khách hàng — trước khi trở thành sự kiện tín dụng.</p>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-building-bank" aria-hidden="true"></i> Huy Động Vốn & CASA</div>
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">Tỷ lệ CASA là thước đo trực tiếp chi phí vốn. Tại ngân hàng VN, CASA dưới 20% là tín hiệu báo động — chi phí vốn cao ảnh hưởng trực tiếp NIM. Mục tiêu CASA các ngân hàng lớn như VCB, TCB: 40–50%.</p>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-droplet" aria-hidden="true"></i> Tỷ Lệ LDR (TT22)</div>
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">Theo Thông tư 22/2019/TT-NHNN: tỷ lệ dư nợ cho vay/tiền gửi không vượt quá 85% với ngân hàng quốc doanh và 80% với ngân hàng TMCP. Dashboard hiển thị LDR thời gian thực, không đợi cuối tháng.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Phân Loại Nợ Theo Thông Tư 02/2013/TT-NHNN</div>
+    <div class="sbv-note">Áp dụng phân loại 5 nhóm nợ theo chuẩn NHNN — là nền tảng của toàn bộ phân tích rủi ro trong dashboard này.</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Nhóm Nợ</th><th>Tên Gọi</th><th>Tiêu Chí DPD</th><th>Tỷ Lệ Dự Phòng</th><th>Dashboard Color</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Nhóm 1</strong></td><td>Nợ Đủ Tiêu Chuẩn</td><td>DPD = 0 (thanh toán đúng hạn)</td><td>0%</td><td style="color:var(--green);font-weight:500;">● Xanh lá</td></tr>
+          <tr><td><strong>Nhóm 2</strong></td><td>Nợ Cần Chú Ý</td><td>DPD 1–30 ngày</td><td>5%</td><td style="color:#b8963e;font-weight:500;">● Vàng</td></tr>
+          <tr><td><strong>Nhóm 3</strong></td><td>Nợ Dưới Tiêu Chuẩn</td><td>DPD 31–90 ngày</td><td>20%</td><td style="color:#e8963e;font-weight:500;">● Cam</td></tr>
+          <tr><td><strong>Nhóm 4</strong></td><td>Nợ Nghi Ngờ</td><td>DPD 91–180 ngày</td><td>50%</td><td style="color:#c0392b;font-weight:500;">● Đỏ</td></tr>
+          <tr><td><strong>Nhóm 5</strong></td><td>Nợ Có Khả Năng Mất Vốn</td><td>DPD &gt;180 ngày</td><td>100%</td><td style="color:#8b0000;font-weight:500;">● Đỏ đậm</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:10px;line-height:1.6;"><strong>Nợ xấu (NPL)</strong> = Nhóm 3 + Nhóm 4 + Nhóm 5. Tỷ lệ NPL mục tiêu ngành ngân hàng VN: &lt; 3% (NHNN), mục tiêu nội bộ các NHTM lớn: &lt; 2%.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Bối Cảnh Kinh Doanh Ngân Hàng VN 2024–2025</div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-users" aria-hidden="true"></i> Phân Khúc Khách Hàng VN</div>
+        <ul style="font-size:12px;color:var(--text-muted);line-height:1.85;padding-left:1.1rem;margin-bottom:12px;">
+          <li><strong>Khách hàng cá nhân (KHCN):</strong> Vay mua nhà, tiêu dùng, xe cộ</li>
+          <li><strong>Doanh nghiệp vừa & nhỏ (DNVVN/SME):</strong> Vốn lưu động, đầu tư</li>
+          <li><strong>Doanh nghiệp lớn (CIB/FDI):</strong> Tín dụng dự án, tài trợ thương mại</li>
+          <li><strong>Khách hàng ưu tiên (Priority/VIP):</strong> Quản lý tài sản, đầu tư</li>
+        </ul>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-map-pin" aria-hidden="true"></i> Phạm Vi Địa Lý</div>
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">Mô hình vùng: Miền Bắc (HN + các tỉnh phía Bắc), Miền Nam (HCM + ĐBSCL), Miền Trung, Miền Đông Nam Bộ, Tây Nguyên. Hội sở chính thường tại Hà Nội hoặc TP.HCM.</p>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Thách Thức Rủi Ro Đặc Thù VN</div>
+        <ul style="font-size:12px;color:var(--text-muted);line-height:1.85;padding-left:1.1rem;margin-bottom:12px;">
+          <li>Nợ tái cơ cấu hậu COVID (Thông tư 01, 03) cần theo dõi riêng biệt</li>
+          <li>Tập trung tín dụng bất động sản — giám sát theo ngành nghề</li>
+          <li>Rủi ro trái phiếu doanh nghiệp nắm giữ trong danh mục đầu tư</li>
+          <li>Áp lực trần lãi suất huy động ảnh hưởng cạnh tranh CASA</li>
+        </ul>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-trending-up" aria-hidden="true"></i> Chỉ Tiêu NHNN 2024</div>
+        <ul style="font-size:12px;color:var(--text-muted);line-height:1.85;padding-left:1.1rem;">
+          <li>Tăng trưởng tín dụng toàn hệ thống: 14–15%/năm</li>
+          <li>Tỷ lệ NPL mục tiêu toàn hệ thống: &lt; 3%</li>
+          <li>Tỷ lệ LDR: &lt; 85% (quốc doanh) / &lt; 80% (TMCP)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PHẦN 3: MÔ HÌNH DỮ LIỆU ══ -->
+<div class="section" id="sec-data">
+  <p class="page-subtitle">Phần 3 / 10</p>
+  <h1 class="page-title">Thiết Kế Mô Hình Dữ Liệu</h1>
+
+  <div class="card">
+    <div class="card-title">Kiến Trúc Star Schema Đa-Fact — Chuẩn Ngân Hàng</div>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.75;margin-bottom:1.25rem;">BI ngân hàng cần kiến trúc đa-fact: nhiều bảng Fact (mỗi bảng cho một quy trình nghiệp vụ) dùng chung bộ bảng Dimension chuẩn hóa. Mỗi bảng Fact lưu trữ một mức độ chi tiết (grain) khác nhau — ảnh chụp số dư hàng ngày, hồ sơ vay mới, giao dịch, hoặc sự kiện phân loại nợ.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:flex-start;padding:1.5rem;background:var(--navy2);border-radius:10px;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="schema-table" style="border-color:rgba(192,57,43,0.3);">
+          <div class="schema-table-header fact">FactDuNoTinDung (Dư Nợ)</div>
+          <div class="schema-field pk">DuNoID (Khóa chính)</div>
+          <div class="schema-field fk">NgayKey · KHKey · CNKey</div>
+          <div class="schema-field fk">SanPhamKey · VungKey</div>
+          <div class="schema-field">DuNoCuoiKy (Số dư cuối kỳ)</div>
+          <div class="schema-field">SoTienGiaiNgan</div>
+          <div class="schema-field">LaiSuatVay (%/năm)</div>
+          <div class="schema-field">TrangThaiKhoanVay</div>
+          <div class="schema-field">SoNgayQuaHan (DPD)</div>
+          <div class="schema-field">NhomNo (1–5 TT02)</div>
+          <div class="schema-field">CoPhaiNPL (0/1)</div>
+          <div class="schema-field">MucTrichLapDuPhong</div>
+        </div>
+        <div class="schema-table" style="border-color:rgba(192,57,43,0.3);">
+          <div class="schema-table-header fact">FactHuyDongVon (HĐV)</div>
+          <div class="schema-field pk">HuyDongID (Khóa chính)</div>
+          <div class="schema-field fk">NgayKey · KHKey · CNKey</div>
+          <div class="schema-field fk">SanPhamKey · VungKey</div>
+          <div class="schema-field">SoDuTienGui</div>
+          <div class="schema-field">LaiSuatHuyDong (%/năm)</div>
+          <div class="schema-field">CoPhaiKKH (CASA Flag)</div>
+          <div class="schema-field">TrangThaiTaiKhoan</div>
+          <div class="schema-field">NgayDaoHan</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="schema-table" style="border-color:rgba(192,57,43,0.3);">
+          <div class="schema-table-header fact">FactHoSoVay (Hồ Sơ)</div>
+          <div class="schema-field pk">HoSoID (Khóa chính)</div>
+          <div class="schema-field fk">NgayKey · KHKey · CNKey</div>
+          <div class="schema-field">SoTienDeNghi</div>
+          <div class="schema-field">SoTienDuocDuyet</div>
+          <div class="schema-field">TrangThaiHoSo</div>
+          <div class="schema-field">ThoiGianXuLy (ngày)</div>
+          <div class="schema-field">LyDoTuChoi</div>
+        </div>
+        <div class="schema-table" style="border-color:rgba(192,57,43,0.3);">
+          <div class="schema-table-header fact">FactNoXau (NPL)</div>
+          <div class="schema-field pk">NoXauID (Khóa chính)</div>
+          <div class="schema-field fk">NgayKey · VayKey · KHKey</div>
+          <div class="schema-field">SoDuNoXau</div>
+          <div class="schema-field">SoNgayQuaHan (DPD)</div>
+          <div class="schema-field">NhomNo (3/4/5)</div>
+          <div class="schema-field">SoTienThuHoi</div>
+          <div class="schema-field">DuPhongCanTrichLap</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="schema-table" style="border-color:rgba(21,96,168,0.3);">
+          <div class="schema-table-header dim">DimNgay (Lịch)</div>
+          <div class="schema-field pk">NgayKey (Khóa chính)</div>
+          <div class="schema-field">NgayDayDu · Nam · Quy</div>
+          <div class="schema-field">Thang · TenThang · Tuan</div>
+          <div class="schema-field">LaNgayCuoiThang · LaNgayCuoiQuy</div>
+          <div class="schema-field">NamTaiChinh · QuyTaiChinh</div>
+        </div>
+        <div class="schema-table" style="border-color:rgba(21,96,168,0.3);">
+          <div class="schema-table-header dim">DimKhachHang</div>
+          <div class="schema-field pk">KHKey (Khóa chính)</div>
+          <div class="schema-field">TenKH · MaCIF · CMND/CCCD</div>
+          <div class="schema-field">PhanKhuc (KHCN/DNVVN/DN lớn)</div>
+          <div class="schema-field">NhomKH · HangKH (Gold/Platinum)</div>
+          <div class="schema-field">Tinh · QuanHuyen · NamSinhHoat</div>
+          <div class="schema-field">MaQLKH · NgayMoQuan He</div>
+        </div>
+        <div class="schema-table" style="border-color:rgba(26,95,176,0.4);min-width:195px;">
+          <div class="schema-table-header dim">DimChiNhanh — Flatten</div>
+          <div class="schema-field pk">BranchKey (Surrogate PK)</div>
+          <div style="height:0.5px;background:var(--border);margin:5px 0;"></div>
+          <div style="font-size:9.5px;color:#1a7a50;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:3px;">Mỗi dòng = 1 PGD / 1 CN</div>
+          <div class="schema-field branch-child">Branch_code (NK — mã PGD/CN)</div>
+          <div class="schema-field branch-child">Branch_name (Tên PGD/CN)</div>
+          <div class="schema-field">Branch_type (CN / PGD / Quầy)</div>
+          <div class="schema-field">IsParent (1=CN mẹ, 0=PGD)</div>
+          <div class="schema-field">Branch_manager (Trưởng PGD/GĐ)</div>
+          <div class="schema-field">Branch_tier (Hạng PGD)</div>
+          <div class="schema-field">Branch_open_date</div>
+          <div class="schema-field">IsActive (1/0)</div>
+          <div style="height:0.5px;background:var(--border);margin:5px 0;"></div>
+          <div style="font-size:9.5px;color:#1a7a50;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:3px;">Thông tin CN mẹ (flatten)</div>
+          <div class="schema-field branch-parent">Parent_branch_code (FK = NK CN mẹ)</div>
+          <div class="schema-field branch-parent">Parent_branch_name</div>
+          <div class="schema-field">Parent_director (GĐ Chi Nhánh)</div>
+          <div class="schema-field">Parent_region (Vùng)</div>
+          <div class="schema-field">Parent_province (Tỉnh/TP)</div>
+          <div style="height:0.5px;background:var(--border);margin:5px 0;"></div>
+          <div style="font-size:9px;color:var(--text-muted);font-style:italic;line-height:1.5;">CN mẹ: Branch_code = Parent_branch_code<br>PGD: Branch_code ≠ Parent_branch_code</div>
+        </div>
+        <div class="schema-table" style="border-color:rgba(21,96,168,0.3);">
+          <div class="schema-table-header dim">DimSanPham</div>
+          <div class="schema-field pk">SanPhamKey (Khóa chính)</div>
+          <div class="schema-field">TenSanPham · MaSanPham</div>
+          <div class="schema-field">LoaiSP (TinDung/HuyDong)</div>
+          <div class="schema-field">DanhMuc · PhanDanhMuc</div>
+          <div class="schema-field">LaiSuatNen · KyHanMin · KyHanMax</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ══ PHẦN 4: KPI ══ -->
+<div class="section" id="sec-kpi">
+  <p class="page-subtitle">Phần 4 / 10</p>
+  <h1 class="page-title">Khung KPI Ngân Hàng</h1>
+
+  <div class="card">
+    <div class="card-title">KPI Tín Dụng <span class="badge badge-blue">Danh Mục Cho Vay</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>KPI</th><th>Công Thức</th><th>Ý Nghĩa Nghiệp Vụ</th><th>Diễn Giải Lãnh Đạo</th><th>Mục Tiêu</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Tổng Dư Nợ</strong></td><td class="formula">SUM(FactDuNoTinDung[DuNoCuoiKy])</td><td style="font-size:11.5px;">Tổng dư nợ đang hoạt động toàn hệ thống</td><td style="font-size:11.5px;">Tài sản sinh lời chính của ngân hàng. Tăng trưởng là tín hiệu tích cực khi kiểm soát được chất lượng.</td><td><span class="nhnn-tag">14–15%/năm</span></td></tr>
+          <tr><td><strong>Tăng Trưởng Tín Dụng %</strong></td><td class="formula">DIVIDE(DuNoCuoiKy - DuNoKyTruoc, DuNoKyTruoc)</td><td style="font-size:11.5px;">Tốc độ tăng/giảm dư nợ so kỳ trước</td><td style="font-size:11.5px;">Theo dõi so với hạn mức tăng trưởng tín dụng NHNN cấp. Vượt hạn mức bị phạt.</td><td><span class="nhnn-tag">NHNN cấp hạn mức</span></td></tr>
+          <tr><td><strong>Giải Ngân Mới (MTD)</strong></td><td class="formula">SUM(FactDuNoTinDung[SoTienGiaiNgan])</td><td style="font-size:11.5px;">Tổng tiền giải ngân trong tháng</td><td style="font-size:11.5px;">Chỉ báo dẫn đầu cho tăng trưởng dư nợ tương lai. So sánh với chỉ tiêu tháng.</td><td>So kế hoạch</td></tr>
+          <tr><td><strong>KH Tín Dụng Hiện Hữu</strong></td><td class="formula">DISTINCTCOUNT(KHKey) WHERE TrangThai=HoatDong</td><td style="font-size:11.5px;">Số khách hàng đang có dư nợ hoạt động</td><td style="font-size:11.5px;">Độ sâu thâm nhập thị trường. Dư nợ tăng nhưng số KH không tăng = khoản vay lớn hơn.</td><td>Tăng hàng tháng</td></tr>
+          <tr><td><strong>Dư Nợ Bình Quân/KH</strong></td><td class="formula">DIVIDE([Tổng Dư Nợ], [KH Tín Dụng])</td><td style="font-size:11.5px;">Giá trị khoản vay trung bình mỗi khách hàng</td><td style="font-size:11.5px;">Tăng = tiến lên phân khúc cao hơn. Giảm = chuyển sang KH nhỏ lẻ, chi phí phục vụ cao hơn.</td><td>Theo phân khúc</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">KPI Huy Động Vốn <span class="badge badge-green">Nguồn Vốn</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>KPI</th><th>Công Thức</th><th>Ý Nghĩa</th><th>Ngưỡng Cảnh Báo</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Tổng HĐV</strong></td><td class="formula">SUM(FactHuyDongVon[SoDuTienGui])</td><td style="font-size:11.5px;">Tổng vốn huy động từ khách hàng</td><td>Phải tăng ≥ tốc độ tăng dư nợ để duy trì LDR</td></tr>
+          <tr><td><strong>Số Dư KKH (CASA)</strong></td><td class="formula">SUM(SoDuTienGui) WHERE CoPhaiKKH=1</td><td style="font-size:11.5px;">Tiền gửi không kỳ hạn + tiết kiệm không kỳ hạn</td><td style="color:var(--red);">Cảnh báo nếu &lt; 20% tổng HĐV</td></tr>
+          <tr><td><strong>Tiền Gửi Có Kỳ Hạn</strong></td><td class="formula">SUM(SoDuTienGui) WHERE CoPhaiKKH=0</td><td style="font-size:11.5px;">Tiền gửi kỳ hạn (1–36 tháng)</td><td>Theo dõi lịch đáo hạn tránh rủi ro thanh khoản</td></tr>
+          <tr><td><strong>Tỷ Lệ CASA</strong></td><td class="formula">DIVIDE([Số Dư KKH], [Tổng HĐV])</td><td style="font-size:11.5px;">% HĐV chi phí thấp trên tổng huy động</td><td style="color:var(--red);">Cảnh báo nếu giảm &gt;2pp so kỳ trước</td></tr>
+          <tr><td><strong>Tăng Trưởng HĐV %</strong></td><td class="formula">DIVIDE(HĐV_M - HĐV_M-1, HĐV_M-1)</td><td style="font-size:11.5px;">Tốc độ tăng/giảm HĐV so kỳ trước</td><td>Phải dương. Âm liên tục = vấn đề thanh khoản</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">KPI Tổng Hợp & Rủi Ro <span class="badge badge-risk">Theo Chuẩn NHNN</span></div>
+    <div class="two-col">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>KPI Tổng Hợp</th><th>Công Thức</th><th>Quy Định</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Tỷ Lệ LDR</strong></td><td class="formula">DIVIDE([Tổng DN], [Tổng HĐV])</td><td style="font-size:11.5px;"><span class="nhnn-tag">TT22: ≤ 80–85%</span></td></tr>
+            <tr><td><strong>Thu Nhập Lãi Thuần (NII)</strong></td><td class="formula">Thu Lãi Vay − Chi Lãi HĐV</td><td style="font-size:11.5px;">Dương và tăng trưởng</td></tr>
+            <tr><td><strong>Chênh Lệch Lãi Suất</strong></td><td class="formula">LS Vay TB − LS HĐV TB</td><td style="font-size:11.5px;">Mục tiêu: &gt;2.5%</td></tr>
+            <tr><td><strong>Tỷ Lệ Cross-sell</strong></td><td class="formula">Sản Phẩm/KH</td><td style="font-size:11.5px;">Mục tiêu: &gt;2 SP/KH</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>KPI Rủi Ro (TT02)</th><th>Công Thức</th><th>Ngưỡng NHNN</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Dư Nợ Xấu</strong></td><td class="formula">SUM(FactNoXau[SoDuNoXau])</td><td>Theo dõi xu hướng</td></tr>
+            <tr><td><strong>Tỷ Lệ Nợ Xấu (NPL)</strong></td><td class="formula">DIVIDE([DN Xấu], [Tổng DN])</td><td style="font-size:11.5px;color:#c0362b;">Cảnh báo: &gt;3%</td></tr>
+            <tr><td><strong>Dư Nợ Quá Hạn</strong></td><td class="formula">SUM(DN WHERE DPD &gt; 0)</td><td>Theo dõi hàng tuần</td></tr>
+            <tr><td><strong>Dự Phòng Rủi Ro</strong></td><td class="formula">SUM(DuPhongCanTrichLap)</td><td>Ảnh hưởng P&amp;L</td></tr>
+            <tr><td><strong>Tỷ Lệ PAR</strong></td><td class="formula">DIVIDE([DN Quá Hạn], [Tổng DN])</td><td style="font-size:11.5px;color:#c0362b;">Cảnh báo: &gt;5%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PHẦN 5: DASHBOARD ══ -->
+<div class="section" id="sec-dash">
+  <p class="page-subtitle">Phần 5 / 10</p>
+  <h1 class="page-title">Dashboard — 6 Trang Trực Quan</h1>
+
+  <!-- ── TRANG 1: TỔNG QUAN ĐIỀU HÀNH ── -->
+  <div class="card">
+    <div class="card-title">Trang 1 — Tổng Quan Điều Hành <span class="badge">TGĐ · CFO · HĐQT</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card info"><div class="kpi-label">Tổng Dư Nợ</div><div class="kpi-value">46.250 Tỷ</div><div class="kpi-delta up">↑ 8,4% so T-1</div></div>
+      <div class="kpi-card pos"><div class="kpi-label">Tổng HĐV</div><div class="kpi-value">57.320 Tỷ</div><div class="kpi-delta up">↑ 11,2% so T-1</div></div>
+      <div class="kpi-card info"><div class="kpi-label">Tăng Trưởng TD</div><div class="kpi-value">8,4%</div><div class="kpi-delta neu">KH: 95%</div></div>
+      <div class="kpi-card info"><div class="kpi-label">Tăng Trưởng HĐV</div><div class="kpi-value">11,2%</div><div class="kpi-delta up">↑ Tháng trước</div></div>
+      <div class="kpi-card"><div class="kpi-label">Tỷ Lệ LDR</div><div class="kpi-value">80,7%</div><div class="kpi-delta neu">Trong TT22</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">Tỷ Lệ NPL</div><div class="kpi-value">2,80%</div><div class="kpi-delta down">↑ 0,3pp T-1</div></div>
+    </div>
+    <div class="alert-box danger" style="margin-bottom:1rem;"><i class="ti ti-alert-triangle" aria-hidden="true"></i><span><strong>Cảnh Báo Rủi Ro:</strong> Tỷ lệ nợ xấu Miền Trung vượt ngưỡng nội bộ 3,0%. Đề nghị Ban Rủi Ro kiểm tra ngay.</span></div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Xu Hướng Dư Nợ & HĐV (Tỷ đồng)</div>
+        <div class="chart-wrap h120"><canvas id="d1_trend" role="img" aria-label="Xu hướng dư nợ và HĐV theo tháng"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Tỷ Lệ LDR So Ngưỡng TT22 (%)</div>
+        <div class="chart-wrap h120"><canvas id="d1_ldr" role="img" aria-label="LDR theo tháng so ngưỡng 80%"></canvas></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Cơ Cấu Dư Nợ Theo Sản Phẩm</div>
+        <div class="chart-wrap" style="height:140px;"><canvas id="d1_loan_sp" role="img" aria-label="Cơ cấu dư nợ theo sản phẩm"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Cơ Cấu HĐV Theo Sản Phẩm</div>
+        <div class="chart-wrap" style="height:140px;"><canvas id="d1_hdv_sp" role="img" aria-label="Cơ cấu HĐV theo sản phẩm"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Top 5 Chi Nhánh — Dư Nợ (Tỷ)</div>
+        <div class="chart-wrap" style="height:140px;"><canvas id="d1_top_cn" role="img" aria-label="Top 5 chi nhánh dư nợ lớn nhất"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TRANG 2: TÍN DỤNG ── -->
+  <div class="card">
+    <div class="card-title">Trang 2 — Phân Tích Danh Mục Tín Dụng <span class="badge badge-blue">Phòng Tín Dụng</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card info"><div class="kpi-label">Tổng Dư Nợ</div><div class="kpi-value">46.250 Tỷ</div></div>
+      <div class="kpi-card info"><div class="kpi-label">Giải Ngân MTD</div><div class="kpi-value">2.960 Tỷ</div><div class="kpi-delta up">↑ Vượt KH</div></div>
+      <div class="kpi-card"><div class="kpi-label">KH Tín Dụng</div><div class="kpi-value">42.180 KH</div></div>
+      <div class="kpi-card"><div class="kpi-label">DN BQ/KH</div><div class="kpi-value">1,10 Tỷ</div><div class="kpi-delta up">↑ 4,1%</div></div>
+      <div class="kpi-card info"><div class="kpi-label">TT Tín Dụng</div><div class="kpi-value">8,4%</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">NPL</div><div class="kpi-value">2,80%</div></div>
+    </div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Xu Hướng Dư Nợ & Giải Ngân (Tỷ)</div>
+        <div class="chart-wrap h120"><canvas id="d2_trend" role="img" aria-label="Dư nợ và giải ngân theo tháng"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Dư Nợ Theo Sản Phẩm (Tỷ)</div>
+        <div class="chart-wrap h120"><canvas id="d2_sp" role="img" aria-label="Dư nợ theo từng loại sản phẩm"></canvas></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Dư Nợ Theo Phân Khúc KH (%)</div>
+        <div class="chart-wrap h120"><canvas id="d2_pk" role="img" aria-label="Tỷ trọng dư nợ theo phân khúc khách hàng"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Lịch Đáo Hạn Khoản Vay (Tỷ)</div>
+        <div class="chart-wrap h120"><canvas id="d2_maturity" role="img" aria-label="Lịch đáo hạn khoản vay theo kỳ"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TRANG 3: HUY ĐỘNG VỐN ── -->
+  <div class="card">
+    <div class="card-title">Trang 3 — Phân Tích Huy Động Vốn <span class="badge badge-green">Phòng HĐV</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card pos"><div class="kpi-label">Tổng HĐV</div><div class="kpi-value">57.320 Tỷ</div></div>
+      <div class="kpi-card pos"><div class="kpi-label">Số Dư KKH</div><div class="kpi-value">19.530 Tỷ</div><div class="kpi-delta down">CASA 34%</div></div>
+      <div class="kpi-card"><div class="kpi-label">TG Kỳ Hạn</div><div class="kpi-value">37.790 Tỷ</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">Tỷ Lệ CASA</div><div class="kpi-value">34,1%</div><div class="kpi-delta down">↓ từ 38%</div></div>
+      <div class="kpi-card pos"><div class="kpi-label">KH Gửi Tiền</div><div class="kpi-value">68.450 KH</div></div>
+      <div class="kpi-card pos"><div class="kpi-label">TT HĐV</div><div class="kpi-value">11,2%</div></div>
+    </div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Xu Hướng HĐV & Tỷ Lệ CASA</div>
+        <div class="chart-wrap h120"><canvas id="d3_trend" role="img" aria-label="HĐV và tỷ lệ CASA theo tháng"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">KKH vs Có Kỳ Hạn (Tỷ)</div>
+        <div class="chart-wrap h120"><canvas id="d3_casa" role="img" aria-label="Tỷ trọng KKH vs CKH theo tháng"></canvas></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">HĐV Theo Sản Phẩm (Tỷ)</div>
+        <div class="chart-wrap h120"><canvas id="d3_sp" role="img" aria-label="HĐV theo loại sản phẩm"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Lịch Đáo Hạn Tiền Gửi CKH (Tỷ)</div>
+        <div class="chart-wrap h120"><canvas id="d3_maturity" role="img" aria-label="Lịch đáo hạn tiền gửi có kỳ hạn"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TRANG 4: CHI NHÁNH ── -->
+  <div class="card">
+    <div class="card-title">Trang 4 — Hiệu Suất Chi Nhánh <span class="badge">Khối Bán Lẻ</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card pos"><div class="kpi-label">CN TD Tốt Nhất</div><div class="kpi-value" style="font-size:13px;">Hội Sở HN</div><div class="kpi-delta up">5.080 Tỷ DN</div></div>
+      <div class="kpi-card pos"><div class="kpi-label">CN HĐV Tốt Nhất</div><div class="kpi-value" style="font-size:13px;">HCM Quận 1</div><div class="kpi-delta up">6.810 Tỷ HĐV</div></div>
+      <div class="kpi-card info"><div class="kpi-label">CN Tăng Trưởng Cao</div><div class="kpi-value" style="font-size:13px;">Đà Nẵng</div><div class="kpi-delta up">+24,3%</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">CN NPL Cao</div><div class="kpi-value" style="font-size:13px;">MT B</div><div class="kpi-delta down">NPL 4,2%</div></div>
+    </div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Dư Nợ vs HĐV Theo Chi Nhánh (Tỷ)</div>
+        <div class="chart-wrap" style="height:160px;"><canvas id="d4_matrix" role="img" aria-label="Dư nợ và HĐV của từng chi nhánh"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Tỷ Lệ NPL Theo Chi Nhánh (%)</div>
+        <div class="chart-wrap" style="height:160px;"><canvas id="d4_npl" role="img" aria-label="Tỷ lệ NPL từng chi nhánh so ngưỡng 3%"></canvas></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Tăng Trưởng Tín Dụng Theo Chi Nhánh (%)</div>
+      <div class="chart-wrap" style="height:130px;"><canvas id="d4_growth" role="img" aria-label="Tăng trưởng tín dụng theo từng chi nhánh"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ── TRANG 5: PHÂN KHÚC KH ── -->
+  <div class="card">
+    <div class="card-title">Trang 5 — Phân Tích Phân Khúc Khách Hàng <span class="badge badge-blue">CRM</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Tổng KH</div><div class="kpi-value">110.630</div></div>
+      <div class="kpi-card info"><div class="kpi-label">KH Tín Dụng</div><div class="kpi-value">42.180</div></div>
+      <div class="kpi-card pos"><div class="kpi-label">KH Gửi Tiền</div><div class="kpi-value">68.450</div></div>
+      <div class="kpi-card"><div class="kpi-label">Cross-sell</div><div class="kpi-value">1,6 SP/KH</div><div class="kpi-delta down">Mục tiêu: 2,0</div></div>
+    </div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Dư Nợ & HĐV Theo Phân Khúc (Tỷ)</div>
+        <div class="chart-wrap" style="height:150px;"><canvas id="d5_seg" role="img" aria-label="Dư nợ và HĐV theo phân khúc khách hàng"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Số Lượng KH & DN BQ/KH Theo Phân Khúc</div>
+        <div class="chart-wrap" style="height:150px;"><canvas id="d5_avg" role="img" aria-label="Số KH và dư nợ bình quân theo phân khúc"></canvas></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Tỷ Lệ NPL Theo Phân Khúc (%)</div>
+      <div class="chart-wrap" style="height:110px;"><canvas id="d5_npl" role="img" aria-label="Tỷ lệ NPL theo phân khúc"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ── TRANG 6: RỦI RO ── -->
+  <div class="card">
+    <div class="card-title">Trang 6 — Giám Sát Rủi Ro <span class="badge badge-risk">Phó TGĐ Rủi Ro</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card risk"><div class="kpi-label">Dư Nợ Xấu</div><div class="kpi-value">1.295 Tỷ</div><div class="kpi-delta down">↑ 68 Tỷ T-1</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">Tỷ Lệ NPL</div><div class="kpi-value">2,80%</div><div class="kpi-delta down">↑ 0,3pp</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">Dư Nợ Quá Hạn</div><div class="kpi-value">2.313 Tỷ</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">Dự Phòng RRTD</div><div class="kpi-value">622 Tỷ</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">Tỷ Lệ PAR</div><div class="kpi-value">5,0%</div><div class="kpi-delta down">Ngưỡng</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">KH Quá Hạn</div><div class="kpi-value">3.842 KH</div></div>
+    </div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Xu Hướng NPL & Ngưỡng 3% NHNN</div>
+        <div class="chart-wrap h120"><canvas id="d6_npl_trend" role="img" aria-label="Xu hướng tỷ lệ NPL và ngưỡng 3%"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Phân Tầng Nợ TT02 — 5 Nhóm (Tỷ)</div>
+        <div class="chart-wrap h120"><canvas id="d6_nhom" role="img" aria-label="Phân loại nợ 5 nhóm theo TT02"></canvas></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Rổ Tuổi Nợ — Aging Bucket (Tỷ)</div>
+        <div class="chart-wrap h120"><canvas id="d6_aging" role="img" aria-label="Aging bucket dư nợ quá hạn"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">NPL Theo Sản Phẩm (%)</div>
+        <div class="chart-wrap h120"><canvas id="d6_npl_sp" role="img" aria-label="Tỷ lệ NPL theo sản phẩm vay"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PHẦN 6: DAX ══ -->
+<div class="section" id="sec-dax">
+  <p class="page-subtitle">Phần 6 / 10</p>
+  <h1 class="page-title">Công Thức DAX — Sẵn Sàng Sử Dụng</h1>
+  <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.7;">Tất cả chỉ số được tổ chức trong bảng <em>_ChiSoNganHang</em> riêng biệt. Sử dụng CALCULATE kết hợp time-intelligence cho mọi phép so sánh kỳ.</p>
+
+  <div class="dax-block">
+    <div class="dax-label">01 — Tổng Dư Nợ</div>
+    <div class="dax-code"><span class="dax-kw">Tổng Dư Nợ</span> = 
+<span class="dax-fn">SUM</span>( FactDuNoTinDung[DuNoCuoiKy] )
+<span class="dax-comment">-- Tổng dư nợ tất cả khoản vay đang hoạt động trong ngữ cảnh lọc.
+-- Phản hồi mọi bộ lọc: chi nhánh, sản phẩm, phân khúc, ngày.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">02 — Dư Nợ Tháng Trước</div>
+    <div class="dax-code"><span class="dax-kw">Dư Nợ Tháng Trước</span> = 
+<span class="dax-fn">CALCULATE</span>(
+    [Tổng Dư Nợ],
+    <span class="dax-fn">PREVIOUSMONTH</span>( DimNgay[NgayDayDu] )
+)
+<span class="dax-comment">-- Sử dụng PREVIOUSMONTH để lấy dư nợ kỳ trước.
+-- Yêu cầu DimNgay phải được đánh dấu là Date Table trong Power BI.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">03 — Tăng Trưởng Tín Dụng %</div>
+    <div class="dax-code"><span class="dax-kw">Tăng Trưởng Tín Dụng %</span> = 
+<span class="dax-fn">VAR</span> DuNoThangNay = [Tổng Dư Nợ]
+<span class="dax-fn">VAR</span> DuNoThangTruoc = [Dư Nợ Tháng Trước]
+<span class="dax-fn">RETURN</span>
+    <span class="dax-fn">DIVIDE</span>( DuNoThangNay - DuNoThangTruoc, DuNoThangTruoc, BLANK() )
+<span class="dax-comment">-- Tỷ lệ tăng trưởng theo tháng. Định dạng phần trăm.
+-- Trả về BLANK() khi không có dữ liệu tháng trước (tránh hiển thị sai).</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">04 — Số Dư KKH (CASA Balance)</div>
+    <div class="dax-code"><span class="dax-kw">Số Dư KKH</span> = 
+<span class="dax-fn">CALCULATE</span>(
+    <span class="dax-fn">SUM</span>( FactHuyDongVon[SoDuTienGui] ),
+    FactHuyDongVon[CoPhaiKKH] = 1
+)
+<span class="dax-comment">-- Tiền gửi không kỳ hạn + tiết kiệm không kỳ hạn (CASA).
+-- Nguồn vốn chi phí thấp — chỉ số then chốt quản lý NIM.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">05 — Tỷ Lệ CASA</div>
+    <div class="dax-code"><span class="dax-kw">Tỷ Lệ CASA</span> = 
+<span class="dax-fn">DIVIDE</span>( [Số Dư KKH], [Tổng HĐV], 0 )
+<span class="dax-comment">-- % HĐV chi phí thấp / Tổng huy động. Mục tiêu: > 30%.
+-- Cảnh báo đỏ khi xuống dưới 20%. Dùng conditional formatting.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">06 — Tỷ Lệ LDR (Theo Thông Tư 22)</div>
+    <div class="dax-code"><span class="dax-kw">Tỷ Lệ LDR</span> = 
+<span class="dax-fn">DIVIDE</span>( [Tổng Dư Nợ], [Tổng HĐV], 0 )
+<span class="dax-comment">-- Tỷ lệ Dư Nợ / Huy Động. Quy định TT22/2019/TT-NHNN:
+-- ≤ 85% (NHTM Nhà nước) hoặc ≤ 80% (NHTM Cổ phần).
+-- Thêm đường ngưỡng vào biểu đồ để cảnh báo trực quan.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">07 — Dư Nợ Xấu (NPL — Nhóm 3+4+5)</div>
+    <div class="dax-code"><span class="dax-kw">Dư Nợ Xấu</span> = 
+<span class="dax-fn">CALCULATE</span>(
+    <span class="dax-fn">SUM</span>( FactDuNoTinDung[DuNoCuoiKy] ),
+    FactDuNoTinDung[NhomNo] >= 3
+)
+<span class="dax-comment">-- Nợ xấu = Nhóm 3 (Dưới TC) + Nhóm 4 (Nghi Ngờ) + Nhóm 5 (Mất Vốn).
+-- Theo TT02/2013/TT-NHNN và TT03/2023/TT-NHNN (sửa đổi).</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">08 — Tỷ Lệ Nợ Xấu (NPL Ratio)</div>
+    <div class="dax-code"><span class="dax-kw">Tỷ Lệ Nợ Xấu</span> = 
+<span class="dax-fn">DIVIDE</span>( [Dư Nợ Xấu], [Tổng Dư Nợ], 0 )
+<span class="dax-comment">-- Chỉ số rủi ro cốt lõi. Ngưỡng cảnh báo NHNN: 3%.
+-- Dùng màu: Xanh < 2% | Cam 2–3% | Đỏ > 3%.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">09 — Thu Nhập Lãi Thuần (NII)</div>
+    <div class="dax-code"><span class="dax-kw">Thu Nhập Lãi Thuần</span> = 
+<span class="dax-fn">VAR</span> ThuLai = <span class="dax-fn">SUMX</span>( FactDuNoTinDung, FactDuNoTinDung[DuNoCuoiKy] * FactDuNoTinDung[LaiSuatVay] / 12 )
+<span class="dax-fn">VAR</span> ChiLai = <span class="dax-fn">SUMX</span>( FactHuyDongVon, FactHuyDongVon[SoDuTienGui] * FactHuyDongVon[LaiSuatHuyDong] / 12 )
+<span class="dax-fn">RETURN</span>
+    ThuLai - ChiLai
+<span class="dax-comment">-- Ước tính NII theo tháng (lãi suất năm / 12).
+-- Với độ chính xác cao hơn, dùng dữ liệu tích lũy lãi thực tế từ CoreBanking.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">10 — Tỷ Lệ Dự Phòng Bao Phủ</div>
+    <div class="dax-code"><span class="dax-kw">Tỷ Lệ Bao Phủ DP</span> = 
+<span class="dax-fn">DIVIDE</span>(
+    <span class="dax-fn">SUM</span>( FactNoXau[DuPhongCanTrichLap] ),
+    [Dư Nợ Xấu],
+    0
+)
+<span class="dax-comment">-- Tỷ lệ dự phòng bao phủ nợ xấu. Mục tiêu: >= 100%.
+-- Dưới 100% = chưa đủ bao phủ, cần tăng trích lập → ảnh hưởng lợi nhuận.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">11 — Phân Nhóm Nợ TT02 (Nhóm 1 đến 5)</div>
+    <div class="dax-code"><span class="dax-kw">DN Nhóm 1</span> = <span class="dax-fn">CALCULATE</span>([Tổng Dư Nợ], FactDuNoTinDung[NhomNo] = 1)
+<span class="dax-kw">DN Nhóm 2</span> = <span class="dax-fn">CALCULATE</span>([Tổng Dư Nợ], FactDuNoTinDung[NhomNo] = 2)
+<span class="dax-kw">DN Nhóm 3</span> = <span class="dax-fn">CALCULATE</span>([Tổng Dư Nợ], FactDuNoTinDung[NhomNo] = 3)
+<span class="dax-kw">DN Nhóm 4</span> = <span class="dax-fn">CALCULATE</span>([Tổng Dư Nợ], FactDuNoTinDung[NhomNo] = 4)
+<span class="dax-kw">DN Nhóm 5</span> = <span class="dax-fn">CALCULATE</span>([Tổng Dư Nợ], FactDuNoTinDung[NhomNo] = 5)
+<span class="dax-comment">-- 5 chỉ số riêng biệt cho 5 nhóm nợ theo TT02.
+-- Dùng trong biểu đồ cột xếp chồng để trực quan hóa cấu trúc chất lượng danh mục.</span></div>
+  </div>
+</div>
+
+<!-- ══ PHẦN 7: DỮ LIỆU ══ -->
+<div class="section" id="sec-dataset">
+  <p class="page-subtitle">Phần 7 / 10</p>
+  <h1 class="page-title">Thiết Kế Dữ Liệu Mẫu</h1>
+
+  <div class="card">
+    <div class="card-title">Khối Lượng Dữ Liệu Gợi Ý cho Demo Hồ Sơ</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tập Dữ Liệu</th><th>Số Dòng</th><th>Kỳ</th><th>Ghi Chú</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Tài Khoản Vay</strong></td><td>5.000 – 10.000 KH</td><td>24 tháng lịch sử</td><td>Ảnh chụp số dư cuối tháng. Dùng tháng cho demo (không dùng ngày để tránh dữ liệu quá lớn).</td></tr>
+          <tr><td><strong>Tài Khoản Huy Động</strong></td><td>8.000 – 15.000 TK</td><td>24 tháng</td><td>Bao gồm KKH (CASA) + CKH. Tỷ lệ CASA khoảng 30–35%.</td></tr>
+          <tr><td><strong>Khách Hàng</strong></td><td>10.000 – 20.000 KH</td><td>Bảng tĩnh</td><td>5 phân khúc: KHCN / DNVVN / DN Lớn / VIP / Phổ Thông.</td></tr>
+          <tr><td><strong>Chi Nhánh</strong></td><td>50 – 100 CN</td><td>Bảng tĩnh</td><td>5 vùng: Miền Bắc, Miền Nam, Miền Trung, Miền Đông, Tây Nguyên.</td></tr>
+          <tr><td><strong>Hồ Sơ Nợ Xấu</strong></td><td>500 – 1.000 HS</td><td>24 tháng</td><td>~3–5% số khoản vay được phân loại NPL (Nhóm 3, 4, 5).</td></tr>
+          <tr><td><strong>Hồ Sơ Vay Mới</strong></td><td>2.000 – 5.000 HS</td><td>24 tháng</td><td>Trạng thái: Đã duyệt / Từ chối / Đang xử lý.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Trường Dữ Liệu — Tín Dụng</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Trường</th><th>Kiểu</th><th>Ví Dụ</th></tr></thead>
+          <tbody>
+            <tr><td class="formula">MaKhoanVay</td><td>String</td><td>TV-2024-00001</td></tr>
+            <tr><td class="formula">MaKhachHang (CIF)</td><td>String</td><td>CIF-10042</td></tr>
+            <tr><td class="formula">MaChiNhanh</td><td>String</td><td>CN-HN-001</td></tr>
+            <tr><td class="formula">LoaiSanPham</td><td>String</td><td>Vay Mua Nhà / Vay DNVVN</td></tr>
+            <tr><td class="formula">SoTienVay (VND)</td><td>Decimal</td><td>2.500.000.000</td></tr>
+            <tr><td class="formula">DuNoCuoiKy</td><td>Decimal</td><td>1.885.000.000</td></tr>
+            <tr><td class="formula">NgayGiaiNgan</td><td>Date</td><td>15/03/2023</td></tr>
+            <tr><td class="formula">NgayDaoHan</td><td>Date</td><td>15/03/2033</td></tr>
+            <tr><td class="formula">LaiSuatVay (%/nam)</td><td>Decimal</td><td>9,5</td></tr>
+            <tr><td class="formula">NhomNo</td><td>Integer</td><td>1 / 2 / 3 / 4 / 5</td></tr>
+            <tr><td class="formula">SoNgayQuaHan (DPD)</td><td>Integer</td><td>0 / 15 / 45 / 120</td></tr>
+            <tr><td class="formula">CoPhaiNPL</td><td>Boolean</td><td>0 / 1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Trường Dữ Liệu — Huy Động Vốn</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Trường</th><th>Kiểu</th><th>Ví Dụ</th></tr></thead>
+          <tbody>
+            <tr><td class="formula">MaTaiKhoan</td><td>String</td><td>TK-2024-00421</td></tr>
+            <tr><td class="formula">MaKhachHang (CIF)</td><td>String</td><td>CIF-10042</td></tr>
+            <tr><td class="formula">MaChiNhanh</td><td>String</td><td>CN-HCM-003</td></tr>
+            <tr><td class="formula">LoaiSanPham</td><td>String</td><td>TK KKH / TG CKH 12T</td></tr>
+            <tr><td class="formula">SoDuTienGui (VND)</td><td>Decimal</td><td>5.000.000.000</td></tr>
+            <tr><td class="formula">NgayMoTaiKhoan</td><td>Date</td><td>01/06/2022</td></tr>
+            <tr><td class="formula">NgayDaoHan</td><td>Date</td><td>01/06/2025</td></tr>
+            <tr><td class="formula">LaiSuatHuyDong (%/nam)</td><td>Decimal</td><td>5,5</td></tr>
+            <tr><td class="formula">TrangThaiTK</td><td>String</td><td>Hoạt Động / Đóng / Tái Tục</td></tr>
+            <tr><td class="formula">CoPhaiKKH (CASA)</td><td>Boolean</td><td>1 = KKH, 0 = CKH</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PHẦN 8: INSIGHTS ══ -->
+<div class="section" id="sec-insights">
+  <p class="page-subtitle">Phần 8 / 10</p>
+  <h1 class="page-title">20 Insights Ngân Hàng Tự Động</h1>
+  <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.75rem;line-height:1.7;">Các insights được dashboard tự động phát hiện — phù hợp chuẩn báo cáo và phân tích ngân hàng thương mại Việt Nam.</p>
+
+  <div class="insights-grid">
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 01 · Tín Dụng</div><div class="insight-title">Tổng dư nợ tăng 8,4% so tháng trước, đạt 46.250 tỷ đồng</div></div><span class="insight-badge ib-up">↑ 8,4%</span></div>
+      <div class="legend"><span><span class="leg-dot" style="background:#1560a8;"></span>Năm nay</span><span><span class="leg-dot" style="background:#b4b2a9;border:1px dashed #888;"></span>Năm trước</span></div>
+      <div class="chart-wrap h110"><canvas id="ci1" role="img" aria-label="Xu hướng dư nợ hàng tháng"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 02 · Huy Động Vốn</div><div class="insight-title">HĐV tăng nhanh hơn tín dụng, cải thiện tỷ lệ LDR</div></div><span class="insight-badge ib-up">↑ 11,2% HĐV</span></div>
+      <div class="legend"><span><span class="leg-dot" style="background:#1a7a4a;"></span>HĐV</span><span><span class="leg-dot" style="background:#1560a8;"></span>Dư nợ</span></div>
+      <div class="chart-wrap h110"><canvas id="ci2" role="img" aria-label="So sánh tăng trưởng dư nợ và HĐV"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 03 · Rủi Ro</div><div class="insight-title">DNVVN: 42% dư nợ nhưng chiếm 58% nợ xấu toàn hệ thống</div></div><span class="insight-badge ib-down">Rủi Ro Cao</span></div>
+      <div class="bar-row"><div class="bar-lbl">DNVVN - DN</div><div class="bar-track"><div class="bar-fill" style="width:42%;background:#1560a8;"></div></div><div class="bar-val">42% DN</div></div>
+      <div class="bar-row"><div class="bar-lbl">DNVVN - NX</div><div class="bar-track"><div class="bar-fill" style="width:58%;background:#c0392b;"></div></div><div class="bar-val">58% NX</div></div>
+      <p class="insight-note">Đề nghị rà soát chính sách tín dụng DNVVN — tỷ lệ nợ xấu không tương xứng với quy mô danh mục.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 04 · Chất Lượng HĐV</div><div class="insight-title">Tỷ lệ CASA giảm từ 38% xuống 34% — chi phí vốn tăng lên</div></div><span class="insight-badge ib-down">↓ 4pp</span></div>
+      <div class="legend"><span><span class="leg-dot" style="background:#1a7a4a;"></span>Tỷ lệ CASA %</span></div>
+      <div class="chart-wrap h110"><canvas id="ci4" role="img" aria-label="Xu hướng tỷ lệ CASA giảm qua các quý"></canvas></div>
+      <p class="insight-note">Mỗi 1pp giảm CASA = chi phí vốn tăng ~0,04% trên tổng huy động. Cần đẩy mạnh chương trình CASA.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 05 · Chi Nhánh</div><div class="insight-title">Top 10 chi nhánh nắm giữ 45% tổng HĐV toàn hệ thống</div></div><span class="insight-badge ib-neu">Tập Trung</span></div>
+      <div class="bar-row"><div class="bar-lbl">Top 10 CN</div><div class="bar-track"><div class="bar-fill" style="width:45%;background:#1560a8;"></div></div><div class="bar-val">45%</div></div>
+      <div class="bar-row"><div class="bar-lbl">CN tiếp theo</div><div class="bar-track"><div class="bar-fill" style="width:38%;background:#6fa8d4;"></div></div><div class="bar-val">38%</div></div>
+      <div class="bar-row"><div class="bar-lbl">Còn lại</div><div class="bar-track"><div class="bar-fill" style="width:17%;background:#b5d4f4;"></div></div><div class="bar-val">17%</div></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 06 · Rủi Ro Vùng</div><div class="insight-title">Tỷ lệ nợ xấu Miền Trung vượt ngưỡng nội bộ 3%</div></div><span class="insight-badge ib-down">Cảnh Báo</span></div>
+      <div class="chart-wrap h110"><canvas id="ci6" role="img" aria-label="Tỷ lệ NPL theo vùng với đường ngưỡng 3%"></canvas></div>
+      <p class="insight-note">Miền Trung: 3,4% — Đề nghị Ban Rủi Ro và CN khu vực tiến hành kiểm tra danh mục ngay.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 07 · Thanh Khoản (TT22)</div><div class="insight-title">Tỷ lệ LDR ổn định ở 80,7% — trong giới hạn Thông Tư 22</div></div><span class="insight-badge ib-neu">An Toàn</span></div>
+      <div class="legend"><span><span class="leg-dot" style="background:#1560a8;"></span>LDR thực tế</span><span><span class="leg-dot" style="background:#c0392b;border:1px dashed #c0392b;"></span>Giới hạn TT22: 80%</span></div>
+      <div class="chart-wrap h110"><canvas id="ci7" role="img" aria-label="Xu hướng LDR và đường giới hạn 80% theo TT22"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 08 · Lợi Nhuận</div><div class="insight-title">Thu nhập lãi thuần tăng 6,2% — biên lãi suất nới rộng lên 3,1%</div></div><span class="insight-badge ib-up">↑ NIM</span></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num" style="color:#1a7a4a;">299 Tỷ</div><div class="stat-lbl">Thu lãi vay (tháng)</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:#c0392b;">133 Tỷ</div><div class="stat-lbl">Chi lãi HĐV (tháng)</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:55%;background:#1a7a4a;"></div></div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:5px;">NII = 166 Tỷ/tháng · Chênh lệch LS = 3,1% · NIM đang cải thiện</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 09 · Khách Hàng</div><div class="insight-title">KH Priority/VIP: 3% số lượng nhưng chiếm 28% tổng dư nợ</div></div><span class="insight-badge ib-neu">Giá Trị Cao</span></div>
+      <div class="bar-row"><div class="bar-lbl">VIP/Priority</div><div class="bar-track"><div class="bar-fill" style="width:28%;background:#b8963e;"></div></div><div class="bar-val">28% DN</div></div>
+      <div class="bar-row"><div class="bar-lbl">DN Lớn/CIB</div><div class="bar-track"><div class="bar-fill" style="width:35%;background:#1560a8;"></div></div><div class="bar-val">35% DN</div></div>
+      <div class="bar-row"><div class="bar-lbl">DNVVN</div><div class="bar-track"><div class="bar-fill" style="width:25%;background:#6fa8d4;"></div></div><div class="bar-val">25% DN</div></div>
+      <div class="bar-row"><div class="bar-lbl">KHCN</div><div class="bar-track"><div class="bar-fill" style="width:12%;background:#b5d4f4;"></div></div><div class="bar-val">12% DN</div></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 10 · Danh Mục SP</div><div class="insight-title">Vay mua nhà NPL 0,8% — thấp hơn nhiều so vay kinh doanh 4,2%</div></div><span class="insight-badge ib-neu">Cơ Cấu Rủi Ro</span></div>
+      <div class="chart-wrap h110"><canvas id="ci10" role="img" aria-label="Tỷ lệ NPL theo loại sản phẩm vay"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 11 · Tăng Trưởng CN</div><div class="insight-title">Chi nhánh Đà Nẵng: tăng trưởng tín dụng cao nhất +24,3%/tháng</div></div><span class="insight-badge ib-up">↑ 24,3%</span></div>
+      <div class="chart-wrap h110"><canvas id="ci11" role="img" aria-label="Top chi nhánh tăng trưởng tín dụng cao nhất"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 12 · Cross-sell</div><div class="insight-title">Trung bình 1,6 sản phẩm/KH — chưa đạt mục tiêu 2,0</div></div><span class="insight-badge ib-down">Dưới Mục Tiêu</span></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num" style="color:#c0392b;">1,6</div><div class="stat-lbl">SP/KH thực tế</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:#1a7a4a;">2,0</div><div class="stat-lbl">Mục tiêu SP/KH</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:80%;background:#b8963e;"></div></div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:5px;">80% mục tiêu — KH VIP và DN Lớn có tiềm năng cross-sell cao nhất.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 13 · Thanh Khoản HĐV</div><div class="insight-title">7.800 tỷ tiền gửi CKH đáo hạn trong 60 ngày tới</div></div><span class="insight-badge ib-down">Rủi Ro TK</span></div>
+      <div class="chart-wrap h110"><canvas id="ci13" role="img" aria-label="Lịch đáo hạn tiền gửi CKH theo tháng"></canvas></div>
+      <p class="insight-note">Bộ phận ALCO cần chuẩn bị chương trình tái tục cho KH trọng yếu trước khi đến hạn.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 14 · Cảnh Báo Sớm</div><div class="insight-title">Nợ nhóm 2 (1–30 DPD) tăng 18% — tín hiệu sớm nợ xấu</div></div><span class="insight-badge ib-down">Cảnh Báo Sớm</span></div>
+      <div class="bar-row"><div class="bar-lbl">Nhóm 1 (Đủ TC)</div><div class="bar-track"><div class="bar-fill" style="width:85%;background:#1a7a4a;"></div></div><div class="bar-val">39.290 Tỷ</div></div>
+      <div class="bar-row"><div class="bar-lbl">Nhóm 2 (CT Ý)</div><div class="bar-track"><div class="bar-fill" style="width:7%;background:#b8963e;"></div></div><div class="bar-val">3.240 Tỷ</div></div>
+      <div class="bar-row"><div class="bar-lbl">Nhóm 3 (DTC)</div><div class="bar-track"><div class="bar-fill" style="width:4%;background:#e8963e;"></div></div><div class="bar-val">1.845 Tỷ</div></div>
+      <div class="bar-row"><div class="bar-lbl">Nhóm 4 (NN)</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:#c0392b;"></div></div><div class="bar-val">925 Tỷ</div></div>
+      <div class="bar-row"><div class="bar-lbl">Nhóm 5 (MVV)</div><div class="bar-track"><div class="bar-fill" style="width:1.5%;background:#8b0000;"></div></div><div class="bar-val">950 Tỷ</div></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 15 · HĐV Chi Nhánh</div><div class="insight-title">CN HCM Quận 1 dẫn đầu HĐV — chiếm 11,8% toàn mạng lưới</div></div><span class="insight-badge ib-up">Top CN</span></div>
+      <div class="chart-wrap h110"><canvas id="ci15" role="img" aria-label="Top 5 chi nhánh theo số dư HĐV"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 16 · Phân Khúc</div><div class="insight-title">DN Lớn/CIB: NPL thấp nhất 0,4%, dư nợ BQ cao nhất 45 Tỷ</div></div><span class="insight-badge ib-up">Rủi Ro Thấp</span></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num" style="color:#1a7a4a;">0,4%</div><div class="stat-lbl">NPL phân khúc DN Lớn</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:#1560a8;">45 Tỷ</div><div class="stat-lbl">Dư nợ BQ/KH DN Lớn</div></div>
+      </div>
+      <p class="insight-note">Phân khúc DN Lớn/CIB là phân khúc hiệu quả nhất — đề xuất tăng hạn mức và mở rộng danh mục.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 17 · Phê Duyệt</div><div class="insight-title">Tỷ lệ duyệt vay 72% — thời gian xử lý trung bình 4,2 ngày</div></div><span class="insight-badge ib-neu">Vận Hành</span></div>
+      <div class="bar-row"><div class="bar-lbl">Đã duyệt</div><div class="bar-track"><div class="bar-fill" style="width:72%;background:#1a7a4a;"></div></div><div class="bar-val">72%</div></div>
+      <div class="bar-row"><div class="bar-lbl">Từ chối</div><div class="bar-track"><div class="bar-fill" style="width:18%;background:#c0392b;"></div></div><div class="bar-val">18%</div></div>
+      <div class="bar-row"><div class="bar-lbl">Đang xử lý</div><div class="bar-track"><div class="bar-fill" style="width:10%;background:#b8963e;"></div></div><div class="bar-val">10%</div></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 18 · Sản Phẩm</div><div class="insight-title">Cho vay mua nhà: tăng trưởng nhanh nhất +15,2% so cùng kỳ</div></div><span class="insight-badge ib-up">↑ 15,2%</span></div>
+      <div class="chart-wrap h110"><canvas id="ci18" role="img" aria-label="Tỷ lệ tăng trưởng theo loại sản phẩm vay"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 19 · Dự Phòng</div><div class="insight-title">Tỷ lệ bao phủ dự phòng đạt 48% — chưa đủ theo chuẩn NHNN</div></div><span class="insight-badge ib-down">Thiếu Bao Phủ</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:48%;background:#c0392b;"></div></div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:5px;">48% nợ xấu được bao phủ bởi dự phòng — NHNN thường yêu cầu ≥ 100%. Cần tăng trích lập → ảnh hưởng lợi nhuận kỳ này.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 20 · Mùa Vụ</div><div class="insight-title">Quý 4 luôn đỉnh giải ngân — chiếm 34% tổng giải ngân năm</div></div><span class="insight-badge ib-neu">Mùa Vụ</span></div>
+      <div class="chart-wrap h110"><canvas id="ci20" role="img" aria-label="Phân bổ giải ngân theo quý, Q4 chiếm 34%"></canvas></div>
+      <p class="insight-note">Đẩy mạnh tuyển dụng chuyên viên TD và chuẩn bị thanh khoản trước Quý 4 hàng năm.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ PHẦN 9: CASE STUDY ══ -->
+<div class="section" id="sec-case">
+  <p class="page-subtitle">Phần 9 / 10</p>
+  <h1 class="page-title">Case Study Hồ Sơ</h1>
+
+  <div class="hero" style="padding:2.25rem;">
+    <p class="hero-eyebrow">Dự Án Hồ Sơ · BI Ngân Hàng · Power BI</p>
+    <h1 style="font-size:22px;">Dashboard Phân Tích Tín Dụng & Huy Động Vốn</h1>
+    <p style="margin-bottom:1rem;">Giải pháp Power BI cấp tư vấn thay thế báo cáo Excel thủ công bằng hệ thống thông tin điều hành real-time cho ngân hàng TMCP quy mô trung bình tại Việt Nam.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span class="pill" style="background:rgba(184,150,62,0.2);color:var(--gold-ll);">Power BI</span>
+      <span class="pill" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">SQL Server</span>
+      <span class="pill" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">CoreBanking Integration</span>
+      <span class="pill" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">TT02/TT22 Compliance</span>
+      <span class="pill" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">Row-Level Security</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Vấn Đề Kinh Doanh</div>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">Ngân hàng TMCP với 80 chi nhánh và tổng tài sản 85.000 tỷ đồng đang quản lý toàn bộ báo cáo hiệu suất bằng quy trình thủ công. Bộ phận tín dụng xuất file từ CoreBanking (T24), bộ phận huy động vốn dùng Excel riêng, bộ phận phân loại nợ lấy số liệu từ hệ thống phân loại nợ nội bộ. Không có cái nhìn tổng hợp kết nối ba luồng thông tin quan trọng này. Phó TGĐ Phụ Trách Rủi Ro phát hiện vi phạm ngưỡng NPL chi nhánh qua cuộc họp dự phòng cuối tháng — không phải thông qua cảnh báo chủ động. Giám đốc Chi Nhánh nhận báo cáo PDF tĩnh và không có công cụ phân tích sâu theo sản phẩm hay phân khúc khách hàng.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Giải Pháp Đã Triển Khai</div>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.8;margin-bottom:1.25rem;">Thiết kế và triển khai Power BI Banking Dashboard 6 trang với mô hình đa-fact star schema tích hợp 5 bảng fact và 7 bảng dimension. Xây dựng lớp SQL staging hợp nhất dữ liệu từ CoreBanking, hệ thống quản lý tín dụng và hệ thống phân loại nợ — tự động làm mới lúc 6:00 sáng mỗi ngày. Triển khai Row-Level Security phân quyền 3 cấp: Chi nhánh → Vùng → Hội sở. Xây dựng khung phân loại nợ 5 nhóm theo TT02/2013/TT-NHNN và chỉ số LDR theo TT22/2019/TT-NHNN.</p>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+      <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:.9rem;">
+        <i class="ti ti-brand-windows" style="font-size:24px;color:#1a5fb0;display:block;margin-bottom:5px;" aria-hidden="true"></i>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);">Power BI</div>
+        <div style="font-size:10.5px;color:var(--text-muted);">6 trang · RLS · Làm mới hàng ngày</div>
+      </div>
+      <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:.9rem;">
+        <i class="ti ti-database" style="font-size:24px;color:var(--gold);display:block;margin-bottom:5px;" aria-hidden="true"></i>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);">SQL Server</div>
+        <div style="font-size:10.5px;color:var(--text-muted);">ETL · Staging · Làm sạch dữ liệu</div>
+      </div>
+      <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:.9rem;">
+        <i class="ti ti-table" style="font-size:24px;color:#1a7a50;display:block;margin-bottom:5px;" aria-hidden="true"></i>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);">Excel / CoreBanking</div>
+        <div style="font-size:10.5px;color:var(--text-muted);">Nguồn dữ liệu · T24 export</div>
+      </div>
+      <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:.9rem;">
+        <i class="ti ti-math-function" style="font-size:24px;color:#1a5fb0;display:block;margin-bottom:5px;" aria-hidden="true"></i>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);">DAX</div>
+        <div style="font-size:10.5px;color:var(--text-muted);">25+ chỉ số · Time intelligence</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Kết Quả Kinh Doanh</div>
+    <div class="outcome-grid">
+      <div class="outcome-card"><div class="outcome-num">~75%</div><div class="outcome-label">Giảm công sức lập báo cáo thủ công hàng tháng</div></div>
+      <div class="outcome-card"><div class="outcome-num">6:00 SA</div><div class="outcome-label">Ban lãnh đạo xem dữ liệu hôm qua lúc 6 giờ sáng mỗi ngày</div></div>
+      <div class="outcome-card"><div class="outcome-num">3 Cảnh Báo</div><div class="outcome-label">Vi phạm ngưỡng NPL tại CN phát hiện ngay tuần đầu triển khai</div></div>
+      <div class="outcome-card"><div class="outcome-num">3 → 1</div><div class="outcome-label">Hệ thống hợp nhất từ 3 nguồn rời rạc thành 1 nền tảng</div></div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Bài Học Kinh Nghiệm</div>
+      <ul style="font-size:12.5px;color:var(--text-muted);line-height:1.9;padding-left:1.2rem;">
+        <li>Dữ liệu xuất từ CoreBanking không nhất quán giữa các chi nhánh — mã trạng thái khoản vay khác nhau theo cơ sở lắp đặt. Chuẩn hóa dữ liệu chiếm 35% thời gian dự án.</li>
+        <li>Phó TGĐ Rủi Ro muốn xem NPL theo ngày nhưng hệ thống chỉ phân loại nợ theo tháng — giải quyết bằng tính toán proxy DPD từ file số dư ngày.</li>
+        <li>Giám đốc Chi Nhánh cần view tối ưu di động — layout desktop quá rộng để dùng trên tablet trong cuộc họp nội bộ.</li>
+        <li>Row-Level Security phải được lập kế hoạch từ đầu dự án, không phải thêm vào khi go-live.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Cải Tiến Tương Lai</div>
+      <ul style="font-size:12.5px;color:var(--text-muted);line-height:1.9;padding-left:1.2rem;">
+        <li>Mô hình dự đoán NPL bằng Machine Learning tích hợp Python trong Power BI</li>
+        <li>Chấm điểm giá trị vòng đời khách hàng (CLV) từ CRM ngân hàng</li>
+        <li>Email báo cáo KPI hàng ngày tự động cho Giám đốc Chi Nhánh qua Power Automate</li>
+        <li>Tích hợp hệ thống ALCO theo dõi LDR nội ngày real-time</li>
+        <li>Tính năng Q&A tiếng Việt cho lãnh đạo hỏi dữ liệu bằng ngôn ngữ tự nhiên</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PHẦN 10: WEBSITE ══ -->
+<div class="section" id="sec-web">
+  <p class="page-subtitle">Phần 10 / 10</p>
+  <h1 class="page-title">Nội Dung Website Hồ Sơ</h1>
+
+  <div class="ws-hero">
+    <p style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;">BI Ngân Hàng · Power BI · Tuân Thủ NHNN</p>
+    <h2>Thông Tin Real-Time Cho<br>Quản Lý Tín Dụng, HĐV & Rủi Ro</h2>
+    <p>Tôi xây dựng dashboard Power BI ngân hàng giúp CEO, CFO, CRO và Giám đốc Chi Nhánh có cái nhìn thống nhất hàng ngày về hiệu suất danh mục, thanh khoản và rủi ro tín dụng — phù hợp chuẩn NHNN Việt Nam.</p>
+    <a class="btn-primary" href="mailto:hello@yoursite.com">Đặt Lịch Tư Vấn Ngân Hàng BI →</a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Về Dự Án <span class="badge">Hồ Sơ BI Ngân Hàng</span></div>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">Dự án này minh chứng giải pháp Business Intelligence đầy đủ cho ngân hàng thương mại muốn thoát khỏi báo cáo Excel thủ công và xây dựng hệ sinh thái phân tích tự động, chuẩn mực. Được thiết kế theo đặc thù nghiệp vụ ngân hàng Việt Nam: phân loại nợ 5 nhóm theo TT02, chỉ số LDR theo TT22, cơ cấu tổ chức chi nhánh/vùng/hội sở và các sản phẩm tín dụng & huy động vốn phổ biến tại thị trường VN.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Các Thách Thức Tôi Đã Giải Quyết</div>
+    <div class="three-col">
+      <div style="text-align:center;padding:.75rem;">
+        <i class="ti ti-files-off" style="font-size:28px;color:var(--gold);display:block;margin-bottom:7px;" aria-hidden="true"></i>
+        <div style="font-size:12.5px;font-weight:500;color:var(--text-primary);margin-bottom:3px;">Hệ Thống Rời Rạc</div>
+        <div style="font-size:11.5px;color:var(--text-muted);line-height:1.5;">CoreBanking + HĐV + Phân loại nợ hợp nhất vào 1 mô hình dữ liệu</div>
+      </div>
+      <div style="text-align:center;padding:.75rem;">
+        <i class="ti ti-clock-off" style="font-size:28px;color:var(--gold);display:block;margin-bottom:7px;" aria-hidden="true"></i>
+        <div style="font-size:12.5px;font-weight:500;color:var(--text-primary);margin-bottom:3px;">Báo Cáo Chậm Trễ</div>
+        <div style="font-size:11.5px;color:var(--text-muted);line-height:1.5;">PDF tháng thay bằng dashboard cập nhật lúc 6:00 sáng mỗi ngày</div>
+      </div>
+      <div style="text-align:center;padding:.75rem;">
+        <i class="ti ti-alert-triangle" style="font-size:28px;color:var(--gold);display:block;margin-bottom:7px;" aria-hidden="true"></i>
+        <div style="font-size:12.5px;font-weight:500;color:var(--text-primary);margin-bottom:3px;">Rủi Ro Ẩn Khuất</div>
+        <div style="font-size:11.5px;color:var(--text-muted);line-height:1.5;">Vi phạm ngưỡng NPL được phát hiện trong ngày, không đợi cuộc họp cuối tháng</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Kết Quả Đạt Được <span class="badge badge-green">Tác Động</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card pos"><div class="kpi-label">Công Sức Báo Cáo</div><div class="kpi-value">–75%</div><div class="kpi-delta up">Giảm thủ công</div></div>
+      <div class="kpi-card info"><div class="kpi-label">Độ Tươi Dữ Liệu</div><div class="kpi-value">Hàng ngày</div><div class="kpi-delta up">Trước: PDF tháng</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">Cảnh Báo NPL</div><div class="kpi-value">3 CN</div><div class="kpi-delta up">Tuần đầu go-live</div></div>
+      <div class="kpi-card"><div class="kpi-label">Hệ Thống Hợp Nhất</div><div class="kpi-value">3 → 1</div><div class="kpi-delta up">Nền tảng duy nhất</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Công Nghệ Sử Dụng</div>
+    <div>
+      <span class="pill pill-blue">Power BI Desktop & Service</span>
+      <span class="pill pill-gold">DAX & Time Intelligence</span>
+      <span class="pill pill-green">SQL Server / T-SQL</span>
+      <span class="pill pill-blue">Power Query / M Language</span>
+      <span class="pill pill-gold">Multi-Fact Star Schema</span>
+      <span class="pill pill-green">Row-Level Security (RLS)</span>
+      <span class="pill pill-red">Phân Loại Nợ TT02/NHNN</span>
+      <span class="pill pill-blue">Chỉ Số LDR Theo TT22/NHNN</span>
+      <span class="pill pill-gold">CoreBanking Integration</span>
+      <span class="pill pill-green">Tự Động Làm Mới Hàng Ngày</span>
+    </div>
+  </div>
+
+  <div class="card" style="background:var(--navy);border-color:transparent;">
+    <div style="text-align:center;padding:.75rem;">
+      <p style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;">Sẵn Sàng Hiện Đại Hóa Báo Cáo Ngân Hàng?</p>
+      <p style="font-family:'Playfair Display',serif;font-size:18px;color:#fff;margin-bottom:.75rem;">Xây Dựng Nền Tảng Thông Minh Ngân Hàng Của Bạn</p>
+      <p style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:1.25rem;line-height:1.7;">Đặt lịch tư vấn khám phá miễn phí 30 phút. Tôi sẽ xem xét thiết lập báo cáo hiện tại và đề xuất giải pháp BI phù hợp với quy mô và đặc thù nghiệp vụ ngân hàng của bạn.</p>
+      <a class="btn-primary" href="mailto:hello@yoursite.com">Liên Hệ Ngay →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id,tab){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  tab.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+const B='#1560a8',BL='#b5d4f4',BD='#0c3a6e',
+      G='#1a7a4a',GL='#9fe1cb',
+      R='#c0392b',RL='#f5c6c2',
+      GO='#b8963e',GR='#b4b2a9',AM='#e8963e';
+const nL={legend:{display:false}};
+const tS={color:'#6a82a0',font:{size:10}};
+const gC={color:'rgba(13,35,64,0.07)',drawBorder:false};
+const bO={responsive:true,maintainAspectRatio:false};
+
+new Chart(document.getElementById('ci1'),{type:'line',data:{labels:['T6','T7','T8','T9','T10','T11','T12','T1','T2','T3','T4','T5'],datasets:[{data:[35800,37000,38200,39100,40000,41200,42400,43100,43900,44800,45600,46250],borderColor:B,backgroundColor:'transparent',borderWidth:2,pointRadius:2,pointBackgroundColor:B},{data:[33200,34200,35000,35800,36600,37500,38800,39500,40500,41400,42000,42900],borderColor:GR,backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:0}]},options:{...bO,plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K Tỷ'},grid:gC}}}});
+
+new Chart(document.getElementById('ci2'),{type:'line',data:{labels:['T7','T8','T9','T10','T11','T12','T1','T2','T3','T4','T5'],datasets:[{label:'HĐV',data:[45500,47000,48500,49800,51200,52600,53900,55000,55900,56600,57320],borderColor:G,backgroundColor:'transparent',borderWidth:2,pointRadius:2},{label:'Dư nợ',data:[37000,38200,39100,40000,41200,42400,43100,43900,44800,45600,46250],borderColor:B,backgroundColor:'transparent',borderWidth:2,pointRadius:2,borderDash:[4,3]}]},options:{...bO,plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K Tỷ'},grid:gC}}}});
+
+new Chart(document.getElementById('ci4'),{type:'line',data:{labels:['Q1 NN','Q2 NN','Q3 NN','Q4 NN','Q1','Q2','Q3','Q4'],datasets:[{data:[38,38,37,37,36,35,35,34],borderColor:G,backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:G,borderDash:[5,3]}]},options:{...bO,plugins:nL,scales:{x:{ticks:{...tS,maxRotation:20},grid:{display:false}},y:{min:30,max:42,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+new Chart(document.getElementById('ci6'),{type:'bar',data:{labels:['Miền Bắc','Miền Nam','Miền Trung','Miền Đông','Tây Nguyên'],datasets:[{data:[1.8,2.1,3.4,2.6,2.2],backgroundColor:[G,G,R,AM,G],borderWidth:0}]},options:{...bO,plugins:nL,scales:{x:{ticks:{...tS,maxRotation:20},grid:{display:false}},y:{min:0,max:5,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+new Chart(document.getElementById('ci7'),{type:'line',data:{labels:['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'],datasets:[{data:[78,79,80,81,81,80,82,83,82,81,81,80.7],borderColor:B,backgroundColor:'transparent',borderWidth:2,pointRadius:2},{data:[80,80,80,80,80,80,80,80,80,80,80,80],borderColor:R,backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:0}]},options:{...bO,plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{min:70,max:88,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+new Chart(document.getElementById('ci10'),{type:'bar',data:{labels:['Vay Mua Nhà','Vay Mua Xe','Vay Tiêu Dùng','Vay Kinh Doanh','Vay DNVVN'],datasets:[{data:[0.8,1.4,2.6,3.8,4.2],backgroundColor:[G,G,AM,R,R],borderWidth:0}]},options:{...bO,indexAxis:'y',plugins:nL,scales:{x:{min:0,max:6,ticks:{...tS,callback:v=>v+'%'},grid:gC},y:{ticks:tS,grid:{display:false}}}}});
+
+new Chart(document.getElementById('ci11'),{type:'bar',data:{labels:['Đà Nẵng','Huế','Cần Thơ','Hải Phòng','Biên Hòa'],datasets:[{data:[24.3,18.7,15.2,13.8,11.4],backgroundColor:[GO,B,B,B,B],borderWidth:0}]},options:{...bO,indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>v+'%'},grid:gC},y:{ticks:tS,grid:{display:false}}}}});
+
+new Chart(document.getElementById('ci13'),{type:'bar',data:{labels:['T6','T7','T8','T9','T10','T11'],datasets:[{data:[4550,3250,2930,5200,2440,1950],backgroundColor:[R,R,AM,AM,B,B],borderWidth:0}]},options:{...bO,plugins:nL,scales:{x:{ticks:tS,grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(1)+'K Tỷ'},grid:gC}}}});
+
+new Chart(document.getElementById('ci15'),{type:'bar',data:{labels:['HCM Quận 1','Hội Sở HN','Quận 7','Ba Đình','Thủ Đức'],datasets:[{data:[6810,5080,4300,3880,3230],backgroundColor:[GO,B,BL,BL,BL],borderWidth:0}]},options:{...bO,indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>(v/1000).toFixed(1)+'K Tỷ'},grid:gC},y:{ticks:tS,grid:{display:false}}}}});
+
+new Chart(document.getElementById('ci18'),{type:'bar',data:{labels:['Vay Mua Nhà','Vay Mua Xe','Vay TD Cá Nhân','Vay Kinh Doanh','Vay CKH DN'],datasets:[{data:[15.2,10.4,7.8,6.2,4.1],backgroundColor:[GO,B,BL,BL,GR],borderWidth:0}]},options:{...bO,indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>v+'%'},grid:gC},y:{ticks:tS,grid:{display:false}}}}});
+
+new Chart(document.getElementById('ci20'),{type:'bar',data:{labels:['Quý 1','Quý 2','Quý 3','Quý 4'],datasets:[{data:[18,22,26,34],backgroundColor:[BL,B,B,GO],borderWidth:0}]},options:{...bO,plugins:nL,scales:{x:{ticks:tS,grid:{display:false}},y:{ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+// ══ DASHBOARD CHARTS ══
+const MN=['T6','T7','T8','T9','T10','T11','T12','T1','T2','T3','T4','T5'];
+const MNS=['T7','T8','T9','T10','T11','T12','T1','T2','T3','T4','T5'];
+const CN5=['Hội Sở HN','HCM Q1','Đà Nẵng','Hải Phòng','Cần Thơ'];
+const PK5=['KHCN','DNVVN','DN Lớn','VIP','Phổ Thông'];
+const SP_LOAN=['Vay Mua Nhà','Vay Xe','TD Cá Nhân','Kinh Doanh','DNVVN'];
+const SP_HDV=['TK Không KH','TK Kỳ Hạn','TG CKH 6T','TG CKH 12T','TG CKH 24T'];
+
+function dashChart(id,cfg){
+  const el=document.getElementById(id);
+  if(el) new Chart(el,{...cfg,options:{...bO,...cfg.options}});
+}
+
+// T1: Xu hướng DN & HĐV
+dashChart('d1_trend',{type:'line',data:{labels:MN,datasets:[
+  {label:'Dư nợ',data:[35800,37000,38200,39100,40000,41200,42400,43100,43900,44800,45600,46250],borderColor:B,backgroundColor:'rgba(21,96,168,0.07)',borderWidth:2,pointRadius:2,fill:true},
+  {label:'HĐV',data:[44200,45500,47000,48500,49800,51200,52600,53900,55000,55900,56600,57320],borderColor:G,backgroundColor:'transparent',borderWidth:2,pointRadius:2,borderDash:[4,3]}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC}}}});
+
+// T1: LDR
+dashChart('d1_ldr',{type:'line',data:{labels:MN,datasets:[
+  {data:[78.4,79.1,79.8,80.2,80.4,80.1,80.6,80.8,80.5,80.4,80.5,80.7],borderColor:B,backgroundColor:'rgba(21,96,168,0.06)',borderWidth:2,pointRadius:2,fill:true},
+  {data:[80,80,80,80,80,80,80,80,80,80,80,80],borderColor:R,borderWidth:1.5,borderDash:[5,3],pointRadius:0}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{min:76,max:84,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+// T1: DN theo SP (donut)
+dashChart('d1_loan_sp',{type:'doughnut',data:{labels:SP_LOAN,datasets:[{data:[18200,6800,5100,9800,6350],backgroundColor:[B,'#4a9ae0','#7bbcf0',G,GO],borderWidth:0}]},options:{plugins:{legend:{display:true,position:'bottom',labels:{font:{size:9},color:'#6a82a0',boxWidth:10,padding:6}}},cutout:'60%'}});
+
+// T1: HĐV theo SP (donut)
+dashChart('d1_hdv_sp',{type:'doughnut',data:{labels:SP_HDV,datasets:[{data:[10800,8730,12400,16900,8490],backgroundColor:[G,'#4ab890','#7dd4b0',B,GO],borderWidth:0}]},options:{plugins:{legend:{display:true,position:'bottom',labels:{font:{size:9},color:'#6a82a0',boxWidth:10,padding:6}}},cutout:'60%'}});
+
+// T1: Top CN
+dashChart('d1_top_cn',{type:'bar',data:{labels:CN5,datasets:[{data:[5080,4900,3850,2960,2420],backgroundColor:[GO,B,B,B,B],borderWidth:0,borderRadius:3}]},options:{indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>(v/1000).toFixed(1)+'K'},grid:gC},y:{ticks:{...tS},grid:{display:false}}}}});
+
+// T2: Xu hướng DN & Giải ngân
+dashChart('d2_trend',{type:'bar',data:{labels:MN,datasets:[
+  {type:'line',label:'Dư nợ',data:[35800,37000,38200,39100,40000,41200,42400,43100,43900,44800,45600,46250],borderColor:B,backgroundColor:'transparent',borderWidth:2,pointRadius:2,yAxisID:'y'},
+  {type:'bar',label:'Giải ngân',data:[2100,2200,2350,2180,2400,2600,2500,2650,2800,2750,2900,2960],backgroundColor:'rgba(21,96,168,0.18)',borderWidth:0,borderRadius:3,yAxisID:'y2'}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC,position:'left'},y2:{ticks:{...tS,callback:v=>v+'Tỷ'},grid:{display:false},position:'right'}}}});
+
+// T2: DN theo SP
+dashChart('d2_sp',{type:'bar',data:{labels:SP_LOAN,datasets:[{data:[18200,6800,5100,9800,6350],backgroundColor:[B,'#4a9ae0','#7bbcf0',G,GO],borderWidth:0,borderRadius:4}]},options:{indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC},y:{ticks:{...tS},grid:{display:false}}}}});
+
+// T2: DN theo phân khúc
+dashChart('d2_pk',{type:'doughnut',data:{labels:PK5,datasets:[{data:[14800,11560,16200,3690,0],backgroundColor:[B,GO,G,AM,'#ccc'],borderWidth:0}]},options:{plugins:{legend:{display:true,position:'right',labels:{font:{size:9},color:'#6a82a0',boxWidth:10,padding:5}}},cutout:'55%'}});
+
+// T2: Lịch đáo hạn
+dashChart('d2_maturity',{type:'bar',data:{labels:['<3T','3-6T','6-12T','1-3N','3-5N','>5N'],datasets:[{data:[2100,3400,5200,14800,11200,9550],backgroundColor:['#e53e3e','#dd6b20','#d69e2e',B,B,G],borderWidth:0,borderRadius:3}]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC}}}});
+
+// T3: HĐV & CASA trend
+dashChart('d3_trend',{type:'line',data:{labels:MN,datasets:[
+  {type:'line',label:'HĐV',data:[44200,45500,47000,48500,49800,51200,52600,53900,55000,55900,56600,57320],borderColor:G,backgroundColor:'rgba(26,122,74,0.07)',borderWidth:2,pointRadius:2,fill:true,yAxisID:'y'},
+  {type:'line',label:'CASA%',data:[38,38,37.5,37,36.8,36,35.5,35.2,35,34.8,34.5,34.1],borderColor:AM,backgroundColor:'transparent',borderWidth:2,pointRadius:2,borderDash:[4,3],yAxisID:'y2'}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC,position:'left'},y2:{min:30,max:42,ticks:{...tS,callback:v=>v+'%'},grid:{display:false},position:'right'}}}});
+
+// T3: KKH vs CKH
+dashChart('d3_casa',{type:'bar',data:{labels:MN,datasets:[
+  {label:'KKH (CASA)',data:[16800,17100,17400,17600,17800,18000,18200,18500,18800,19000,19200,19530],backgroundColor:G,borderWidth:0,borderRadius:2},
+  {label:'Có Kỳ Hạn',data:[27400,28400,29600,30900,32000,33200,34400,35400,36200,36900,37400,37790],backgroundColor:'rgba(26,122,74,0.25)',borderWidth:0,borderRadius:2}
+]},options:{plugins:nL,scales:{x:{stacked:true,ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{stacked:true,ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC}}}});
+
+// T3: HĐV theo SP
+dashChart('d3_sp',{type:'bar',data:{labels:SP_HDV,datasets:[{data:[10800,8730,12400,16900,8490],backgroundColor:[G,'#4ab890','#7dd4b0',B,GO],borderWidth:0,borderRadius:4}]},options:{indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC},y:{ticks:{...tS},grid:{display:false}}}}});
+
+// T3: Đáo hạn CKH
+dashChart('d3_maturity',{type:'bar',data:{labels:['T6','T7','T8','T9','T10','T11','T12'],datasets:[{data:[4550,3250,2930,5200,2440,1950,3100],backgroundColor:['#e53e3e','#e53e3e',AM,AM,B,B,G],borderWidth:0,borderRadius:3}]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(1)+'K'},grid:gC}}}});
+
+// T4: DN vs HĐV per branch
+dashChart('d4_matrix',{type:'bar',data:{labels:['Hội Sở HN','HCM Q1','Đà Nẵng','Hải Phòng','Cần Thơ','Huế','Đồng Nai','Bình Dương'],datasets:[
+  {label:'Dư nợ',data:[5080,4900,3850,2960,2420,1850,1720,1650],backgroundColor:B,borderWidth:0,borderRadius:3},
+  {label:'HĐV',data:[6200,6810,4900,3640,2950,2260,2100,1980],backgroundColor:G,borderWidth:0,borderRadius:3}
+]},options:{plugins:{legend:{display:true,position:'top',labels:{font:{size:9},color:'#6a82a0',boxWidth:10}}},scales:{x:{ticks:{...tS,maxRotation:20},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(1)+'K'},grid:gC}}}});
+
+// T4: NPL per branch
+dashChart('d4_npl',{type:'bar',data:{labels:['HCM Q1','Hội Sở HN','Đà Nẵng','Cần Thơ','Hải Phòng','MT B','MT A','Tây Nguyên'],datasets:[
+  {data:[1.8,2.0,2.2,2.4,2.6,4.2,3.1,2.9],backgroundColor:['#1a7a50','#1a7a50','#1a5fb0','#b8882a','#b8882a','#c0362b','#c0362b','#b8882a'],borderWidth:0,borderRadius:3},
+  {type:'line',data:[3,3,3,3,3,3,3,3],borderColor:R,borderWidth:1.5,borderDash:[5,3],pointRadius:0}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:20},grid:{display:false}},y:{min:0,max:5,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+// T4: Growth per branch
+dashChart('d4_growth',{type:'bar',data:{labels:CN5.concat(['Huế','Đồng Nai','Bình Dương']),datasets:[{data:[12.4,10.8,24.3,9.2,11.5,8.4,7.9,6.8],backgroundColor:['#1a5fb0','#1a5fb0',GO,'#1a5fb0','#1a5fb0','#1a5fb0','#1a5fb0','#1a5fb0'],borderWidth:0,borderRadius:3}]},options:{indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>v+'%'},grid:gC},y:{ticks:{...tS},grid:{display:false}}}}});
+
+// T5: DN & HĐV theo phân khúc
+dashChart('d5_seg',{type:'bar',data:{labels:PK5,datasets:[
+  {label:'Dư nợ',data:[5580,11560,16200,12960,0],backgroundColor:B,borderWidth:0,borderRadius:3},
+  {label:'HĐV',data:[18400,9800,12600,10800,5720],backgroundColor:G,borderWidth:0,borderRadius:3}
+]},options:{plugins:{legend:{display:true,position:'top',labels:{font:{size:9},color:'#6a82a0',boxWidth:10}}},scales:{x:{ticks:{...tS,maxRotation:0},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC}}}});
+
+// T5: Số KH & DN BQ
+dashChart('d5_avg',{type:'bar',data:{labels:PK5,datasets:[
+  {type:'bar',label:'Số KH (trái)',data:[68400,22800,540,1890,17000],backgroundColor:'rgba(21,96,168,0.2)',borderWidth:0,borderRadius:3,yAxisID:'y'},
+  {type:'line',label:'DN BQ/KH (Tỷ)',data:[0.082,0.507,30.0,6.86,0],borderColor:GO,borderWidth:2,pointRadius:4,pointBackgroundColor:GO,yAxisID:'y2'}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC,position:'left'},y2:{ticks:{...tS,callback:v=>v+'Tỷ'},grid:{display:false},position:'right'}}}});
+
+// T5: NPL theo phân khúc
+dashChart('d5_npl',{type:'bar',data:{labels:PK5,datasets:[{data:[2.1,5.8,0.4,0.6,3.2],backgroundColor:['#1a5fb0','#c0362b','#1a7a50','#1a7a50','#b8882a'],borderWidth:0,borderRadius:4}]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0},grid:{display:false}},y:{ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+// T6: NPL trend + 3% line
+dashChart('d6_npl_trend',{type:'line',data:{labels:['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'],datasets:[
+  {data:[2.1,2.15,2.2,2.25,2.3,2.35,2.4,2.45,2.55,2.62,2.72,2.80],borderColor:R,backgroundColor:'rgba(192,54,43,0.08)',borderWidth:2,pointRadius:3,fill:true},
+  {data:[3,3,3,3,3,3,3,3,3,3,3,3],borderColor:'#b8882a',borderWidth:1.5,borderDash:[5,3],pointRadius:0}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{min:1.8,max:3.5,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+// T6: 5 nhóm nợ TT02
+dashChart('d6_nhom',{type:'bar',data:{labels:['T9','T10','T11','T12','T1','T2','T3','T4','T5'],datasets:[
+  {label:'N1-Đủ TC',data:[38200,38800,39200,39800,40200,40800,41400,42000,42500],backgroundColor:'#1a7a50',borderWidth:0},
+  {label:'N2-Chú Ý',data:[1800,1900,1950,2050,2100,2150,2200,2300,2420],backgroundColor:'#b8882a',borderWidth:0},
+  {label:'N3-Dưới TC',data:[580,610,640,680,720,760,820,880,950],backgroundColor:'#dd6b20',borderWidth:0},
+  {label:'N4-Nghi Ngờ',data:[280,300,320,340,360,390,420,450,490],backgroundColor:R,borderWidth:0},
+  {label:'N5-Mất Vốn',data:[340,370,390,430,470,500,540,580,640],backgroundColor:'#8b0000',borderWidth:0}
+]},options:{plugins:{legend:{display:true,position:'top',labels:{font:{size:9},color:'#6a82a0',boxWidth:10}}},scales:{x:{stacked:true,ticks:{...tS,maxRotation:0},grid:{display:false}},y:{stacked:true,ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC}}}});
+
+// T6: Aging bucket
+dashChart('d6_aging',{type:'bar',data:{labels:['Đúng hạn','1-30 DPD','31-60 DPD','61-90 DPD','91-180 DPD','>180 DPD'],datasets:[{data:[43500,1850,1100,620,480,700],backgroundColor:['#1a7a50','#b8882a','#dd6b20',R,R,'#8b0000'],borderWidth:0,borderRadius:3}]},options:{indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC},y:{ticks:{...tS},grid:{display:false}}}}});
+
+// T6: NPL theo SP
+dashChart('d6_npl_sp',{type:'bar',data:{labels:SP_LOAN,datasets:[{data:[0.8,1.4,3.2,4.8,5.8],backgroundColor:['#1a7a50','#1a7a50','#b8882a',R,R],borderWidth:0,borderRadius:4}]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:20},grid:{display:false}},y:{min:0,max:7,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+</script>
+</body>
+</html>

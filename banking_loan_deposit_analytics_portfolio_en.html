@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banking Loan & Deposit Analytics Dashboard — BI Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Nav & hero — keep dark navy for premium feel */
+  --navy:#0d2340;--navy2:#162e50;--navy3:#1e3d68;
+  /* Accent gold */
+  --gold:#b8882a;--gold-l:#d4a84a;--gold-ll:#f0d090;
+  /* Semantic */
+  --red:#c0362b;--red-l:#fdecea;
+  --green:#1a7a50;--green-l:#e4f5ec;
+  --blue:#1a5fb0;--blue-l:#e8f0fc;
+  --amber:#b87020;--amber-l:#fef3e2;
+  /* Surface — nhạt, sạch */
+  --bg:#f0f3f8;
+  --surface:#ffffff;
+  --surface2:#f5f7fb;
+  --white:#ffffff;
+  --border:rgba(13,35,64,0.1);
+  --border2:rgba(184,136,42,0.25);
+  --shadow:0 1px 8px rgba(13,35,64,0.08);
+  --text-primary:#0d2340;
+  --text-secondary:#3a5070;
+  --text-muted:#6a82a0;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh}
+
+nav{background:#0d2340;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:200;border-bottom:1px solid var(--border2);backdrop-filter:blur(8px)}
+.nav-brand{font-family:'Playfair Display',serif;color:var(--gold);font-size:13px;letter-spacing:0.06em;white-space:nowrap}
+.nav-tabs{display:flex;gap:1px;flex-wrap:wrap}
+.nav-tab{background:none;border:none;color:rgba(255,255,255,0.42);cursor:pointer;padding:5px 9px;font-size:11px;font-family:'DM Sans',sans-serif;border-radius:4px;transition:all 0.18s;letter-spacing:0.01em}
+.nav-tab:hover{color:#fff;background:rgba(255,255,255,0.07)}
+.nav-tab.active{color:var(--gold);background:rgba(201,168,76,0.12)}
+
+.section{display:none;padding:2.5rem 2rem;max-width:1020px;margin:0 auto}
+.section.active{display:block}
+h1.page-title{font-family:'Playfair Display',serif;font-size:27px;font-weight:700;color:var(--text-primary);margin-bottom:0.2rem}
+.page-subtitle{font-size:11.5px;color:var(--text-muted);margin-bottom:2rem;letter-spacing:0.04em;text-transform:uppercase}
+
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem;box-shadow:var(--shadow)}
+.card-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:500;color:var(--text-primary);margin-bottom:0.85rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;background:rgba(201,168,76,0.15);color:var(--gold-l);padding:2px 8px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase}
+.badge-risk{background:var(--red-l);color:#8a1a12}
+.badge-green{background:var(--green-l);color:#145a38}
+.badge-blue{background:var(--blue-l);color:#0d3a80}
+
+.hero{background:var(--navy);border-radius:16px;padding:2.75rem 2.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:280px;height:280px;border-radius:50%;border:1px solid rgba(184,150,62,0.1)}
+.hero::after{content:'';position:absolute;bottom:-50px;right:100px;width:150px;height:150px;border-radius:50%;border:1px solid rgba(184,150,62,0.06)}
+.hero-eyebrow{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem}
+.hero h1{font-family:'Playfair Display',serif;font-size:28px;color:#fff;line-height:1.25;margin-bottom:1rem}
+.hero p{font-size:13.5px;color:rgba(255,255,255,0.6);line-height:1.75;max-width:560px;margin-bottom:1.5rem}
+.hero-stats{display:flex;gap:2.5rem;flex-wrap:wrap}
+.hero-stat .num{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold)}
+.hero-stat .lbl{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px}
+
+/* Red-gold stripe characteristic of VN banking */
+.vn-banner{background:linear-gradient(90deg,var(--red) 0%,#8b1a10 50%,var(--navy) 100%);height:4px;border-radius:2px;margin-bottom:1.5rem}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.5rem}
+.kpi-card{background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:1rem;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold)}
+.kpi-card.risk::before{background:var(--red)}
+.kpi-card.pos::before{background:var(--green)}
+.kpi-card.info::before{background:var(--blue)}
+.kpi-label{font-size:10px;color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:5px}
+.kpi-value{font-family:'Playfair Display',serif;font-size:20px;color:var(--text-primary)}
+.kpi-delta{font-size:10.5px;margin-top:4px}
+.kpi-delta.up{color:#1a7a50}
+.kpi-delta.down{color:#c0362b}
+.kpi-delta.neu{color:#1a5fb0}
+
+.wireframe{background:var(--surface2);border-radius:10px;padding:1.25rem;margin-bottom:1rem;border:0.5px solid var(--border)}
+.wireframe-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.wireframe-title{font-size:12.5px;font-weight:500;color:var(--text-primary)}
+.wireframe-row{display:flex;gap:10px;margin-bottom:10px}
+.wf-box{background:var(--white);border-radius:7px;padding:10px;border:0.5px solid var(--border);font-size:10.5px;color:var(--text-muted);text-align:center;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.wf-box .wf-label{font-weight:500;color:var(--text-primary);font-size:9.5px;margin-top:4px;text-transform:uppercase;letter-spacing:0.04em}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;padding:8px 12px;font-size:10.5px;font-weight:500;color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;border-bottom:0.5px solid var(--border)}
+td{padding:10px 12px;border-bottom:0.5px solid var(--border);color:var(--text-primary);vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.03)}
+td.formula{font-family:monospace;font-size:10.5px;background:rgba(43,125,233,0.12);border-radius:4px;padding:3px 7px;color:#0d3a80;white-space:nowrap;border:0.5px solid rgba(43,125,233,0.2)}
+
+.dax-block{background:var(--navy2);border-radius:10px;padding:1.25rem;margin-bottom:1rem;border:0.5px solid rgba(255,255,255,0.06)}
+.dax-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:7px}
+.dax-code{font-family:'Courier New',monospace;font-size:11.5px;color:#b3e5d0;line-height:1.7;white-space:pre-wrap}
+.dax-comment{color:rgba(255,255,255,0.28)}
+.dax-kw{color:#80cbc4}
+.dax-fn{color:#fff59d}
+
+.insight-card{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:15px;margin-bottom:14px;box-shadow:var(--shadow);transition:border-color 0.2s}
+.insight-card:hover{border-color:var(--border2)}
+.insight-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.insight-num{font-size:10px;color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase}
+.insight-title{font-size:13.5px;font-weight:500;color:var(--text-primary);line-height:1.35;margin-top:2px}
+.insight-badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:500;white-space:nowrap;flex-shrink:0;margin-left:8px}
+.ib-up{background:var(--green-l);color:#145a38}
+.ib-down{background:var(--red-l);color:#8a1a12}
+.ib-neu{background:var(--blue-l);color:#0d3a80}
+.insight-note{font-size:11.5px;color:var(--text-muted);margin-top:8px;line-height:1.5}
+.insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px}
+.chart-wrap{position:relative;width:100%}
+.h90{height:90px}.h100{height:100px}.h110{height:110px}.h120{height:120px}
+
+.schema-table{background:var(--surface2);border:0.5px solid var(--border);border-radius:9px;padding:.9rem;min-width:155px}
+.schema-table-header{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;padding-bottom:5px;border-bottom:0.5px solid var(--border);margin-bottom:5px}
+.schema-table-header.fact{color:var(--red)}
+.schema-table-header.dim{color:var(--blue)}
+.schema-field{font-size:10.5px;color:var(--text-muted);padding:1.5px 0}
+.schema-field.pk{color:var(--gold);font-weight:500}
+.schema-field.fk{color:var(--text-secondary)}
+.schema-field.branch-parent{color:#1a7a50;font-weight:500}
+.schema-field.branch-child{color:#1a5fb0}
+
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:7px;font-size:11px;color:var(--text-muted)}
+.leg-dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
+.bar-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.bar-lbl{font-size:10.5px;color:var(--text-muted);width:90px;text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:10px;background:rgba(13,35,64,0.08);border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px}
+.bar-val{font-size:10.5px;color:var(--text-primary);font-weight:500;width:50px}
+.stat-row{display:flex;gap:10px;margin-bottom:10px}
+.stat-box{flex:1;background:var(--surface2);border-radius:8px;padding:8px 11px;border:0.5px solid var(--border)}
+.stat-num{font-size:19px;font-weight:500;color:var(--text-primary)}
+.stat-lbl{font-size:10px;color:var(--text-muted);margin-top:2px}
+.progress-bar{background:rgba(13,35,64,0.08);border-radius:8px;height:14px;overflow:hidden;margin-top:7px}
+.progress-fill{height:100%;border-radius:8px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.outcome-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-top:1rem}
+.outcome-card{background:linear-gradient(135deg,var(--navy2) 0%,var(--navy) 100%);border:0.5px solid var(--border2);border-radius:10px;padding:1.2rem;color:#fff}
+.outcome-num{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold)}
+.outcome-label{font-size:11.5px;color:rgba(255,255,255,0.5);margin-top:4px;line-height:1.4}
+.pill{display:inline-block;font-size:10px;padding:3px 8px;border-radius:20px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;margin:3px}
+.pill-gold{background:rgba(201,168,76,0.15);color:var(--gold-l)}
+.pill-blue{background:var(--blue-l);color:#0d3a80}
+.pill-green{background:var(--green-l);color:#145a38}
+.pill-red{background:var(--red-l);color:#8a1a12}
+.ws-hero{background:linear-gradient(135deg,var(--navy2) 0%,var(--navy) 100%);border:0.5px solid var(--border2);border-radius:14px;padding:3rem 2rem;text-align:center;margin-bottom:1.25rem}
+.ws-hero h2{font-family:'Playfair Display',serif;font-size:25px;color:#fff;margin-bottom:.75rem;line-height:1.3}
+.ws-hero p{font-size:13.5px;color:rgba(255,255,255,0.6);margin-bottom:1.25rem;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.7}
+.btn-primary{background:var(--gold);color:var(--text-primary);border:none;padding:10px 22px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-block;text-decoration:none;transition:opacity 0.15s}
+.btn-primary:hover{opacity:.88}
+.alert-box{background:var(--amber-l);border:0.5px solid rgba(184,112,32,0.3);border-radius:8px;padding:12px 14px;font-size:12px;color:#8a5010;margin-bottom:8px;display:flex;gap:8px;align-items:flex-start}
+.alert-box.danger{background:var(--red-l);border-color:rgba(192,54,43,0.3);color:#8a1a12}
+
+/* NHÃN NHNN */
+.nhnn-tag{display:inline-flex;align-items:center;gap:5px;background:var(--red-l);border:0.5px solid rgba(192,54,43,0.25);border-radius:4px;padding:2px 8px;font-size:10px;color:#8a1a12;font-weight:500;letter-spacing:0.03em}
+.sbv-note{background:var(--blue-l);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;padding:10px 14px;font-size:12px;color:#0d3a80;line-height:1.6;margin-bottom:8px}
+/* Branch hierarchy */
+.branch-connector{border-left:1.5px solid rgba(95,204,158,0.35);margin-left:8px;padding-left:10px}
+
+@media(max-width:640px){
+  nav{padding:0 .75rem}
+  .nav-brand{font-size:11.5px}
+  .nav-tab{padding:4px 5px;font-size:10px}
+  .section{padding:1.5rem .75rem}
+  .two-col,.three-col{grid-template-columns:1fr}
+  .hero h1{font-size:21px}
+  .hero-stats{gap:1.5rem}
+  .insights-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">Management Reporting — Commercial Bank</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="show('exec',this)">Executive</button>
+    <button class="nav-tab" onclick="show('biz',this)">Business Case</button>
+    <button class="nav-tab" onclick="show('data',this)">Data Model</button>
+    <button class="nav-tab" onclick="show('kpi',this)">KPI</button>
+    <button class="nav-tab" onclick="show('dash',this)">Dashboard</button>
+    <button class="nav-tab" onclick="show('dax',this)">DAX</button>
+    <button class="nav-tab" onclick="show('dataset',this)">Dataset</button>
+    <button class="nav-tab" onclick="show('insights',this)">Insights</button>
+    <button class="nav-tab" onclick="show('case',this)">Case Study</button>
+    <button class="nav-tab" onclick="show('web',this)">Website</button>
+  </div>
+</nav>
+
+<!-- ══ SECTION 1: EXECUTIVE SUMMARY ══ -->
+<div class="section active" id="sec-exec">
+  <p class="page-subtitle">Section 1 of 10 · Banking BI · Consulting Grade</p>
+  <h1 class="page-title">Executive Summary</h1>
+  <div class="vn-banner"></div>
+
+  <div class="hero">
+    <p class="hero-eyebrow">Confidential — Prepared for Board of Directors · Executive Committee</p>
+    <h1>Banking Loan & Deposit Analytics Dashboard</h1>
+    <p>A consulting-grade Power BI solution delivering unified visibility into loan portfolio performance, deposit mobilization, branch productivity, customer segmentation, and real-time NPL monitoring — aligned with SBV (NHNN) reporting standards and Vietnamese commercial banking practices.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">6</div><div class="lbl">Dashboard Pages</div></div>
+      <div class="hero-stat"><div class="num">25+</div><div class="lbl">DAX Measures</div></div>
+      <div class="hero-stat"><div class="num">20+</div><div class="lbl">Auto Insights</div></div>
+      <div class="hero-stat"><div class="num">5</div><div class="lbl">Fact Tables</div></div>
+      <div class="hero-stat"><div class="num">7</div><div class="lbl">Dimension Tables</div></div>
+    </div>
+  </div>
+
+  <div class="sbv-note">
+    <strong>SBV Compliance Note:</strong> Dashboard is designed per SBV Circular 02/2013 (amended by Circular 03/2023) — 5-group loan classification, LDR per Circular 22/2019, and capital adequacy ratios per Basel II.
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Business Challenge <span class="badge badge-risk">Problem</span></div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">The bank manages loan and deposit reporting on separate, siloed systems. The credit team exports from CoreBanking, the deposit team uses its own Excel tracker, and the risk team pulls from a separate NPL system. Management receives consolidated reports 2–3 weeks after month-end. The Deputy CEO for Credit has no real-time NPL visibility. Branch Directors cannot benchmark their performance against the network.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Proposed Solution <span class="badge">BI Transformation</span></div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">Deploy a 6-page Power BI Banking Dashboard with a multi-fact star schema integrating CoreBanking (T24/Temenos, FPT.BankingOS, or equivalent), CRM, and NPL data. Build a 25+ DAX KPI framework aligned to SBV standards. Implement 3-tier Row-Level Security: Branch → Region → Head Office.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Expected Business Impact</div>
+    <div class="outcome-grid">
+      <div class="outcome-card"><div class="outcome-num">Real-time</div><div class="outcome-label">Daily NPL monitoring instead of end-of-month reports</div></div>
+      <div class="outcome-card"><div class="outcome-num">~75%</div><div class="outcome-label">Reduction in manual reporting effort across branches</div></div>
+      <div class="outcome-card"><div class="outcome-num">1 Platform</div><div class="outcome-label">Unified loans + deposits + risk in one dashboard platform</div></div>
+      <div class="outcome-card"><div class="outcome-num">20+</div><div class="outcome-label">Automated alerts for management to take timely action</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Key Benefits by Role</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Executive</th><th>Key Benefit</th><th>Dashboard Pages</th></tr></thead>
+        <tbody>
+          <tr><td><strong>CEO</strong></td><td style="font-size:12px;">30-second bank health snapshot: loans, deposits, LDR, NPL at a glance</td><td><span class="badge badge-blue">Executive Overview</span></td></tr>
+          <tr><td><strong>CFO</strong></td><td style="font-size:12px;">Net interest income, spread, LDR vs Circular 22 limit</td><td><span class="badge badge-blue">Executive + Deposits</span></td></tr>
+          <tr><td><strong>CRO</strong></td><td style="font-size:12px;">Real-time NPL ratio, TT02 loan classification, provision coverage</td><td><span class="badge badge-risk">Risk Monitoring</span></td></tr>
+          <tr><td><strong>Head of Retail Banking</strong></td><td style="font-size:12px;">Branch performance ranking, cross-sell ratio, retail segment breakdown</td><td><span class="badge badge-green">Branch + Customer</span></td></tr>
+          <tr><td><strong>Branch Director</strong></td><td style="font-size:12px;">Own branch KPIs vs network, product mix, customer portfolio</td><td><span class="badge badge-blue">Branch Performance</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 2: BUSINESS CASE ══ -->
+<div class="section" id="sec-biz">
+  <p class="page-subtitle">Section 2 of 10</p>
+  <h1 class="page-title">Vietnamese Banking Business Case</h1>
+  <div class="vn-banner"></div>
+
+  <div class="card">
+    <div class="card-title">Why Loan & Deposit Analytics Are the #1 Priority</div>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.8;margin-bottom:1rem;">Vietnamese commercial banks operate on net interest margin (NIM) — the spread between lending rates and deposit costs. Under tightening SBV credit quotas, post-COVID NPL pressure, and intensifying deposit competition, management needs same-day decision intelligence — not 3-week-old reports.</p>
+    <div class="three-col">
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-coin" aria-hidden="true"></i> Loan Portfolio Management</div>
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">Track disbursement velocity, loan growth, product mix, and maturity schedules. Detect over-concentration in a sector, region, or customer group before it becomes a credit event.</p>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-building-bank" aria-hidden="true"></i> Deposit Mobilization & CASA</div>
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">CASA ratio is the direct proxy for funding cost. In Vietnamese banks, CASA below 20% is a warning signal — high funding cost directly compresses NIM. Leading banks (VCB, TCB) target 40–50% CASA.</p>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-droplet" aria-hidden="true"></i> LDR Ratio (TT22)</div>
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">Per Circular 22/2019/SBV: LDR must not exceed 85% for state-owned banks and 80% for private commercial banks. This dashboard shows LDR intra-month — not 3 weeks after month-end.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Loan Classification per Circular 02/2013/SBV</div>
+    <div class="sbv-note">Applies 5-group loan classification per SBV standard — the foundation of all risk analysis in this dashboard.</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Loan Group</th><th>Name</th><th>DPD Criteria</th><th>Provision Rate</th><th>Dashboard Color</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Group 1</strong></td><td>Standard Loans</td><td>DPD = 0 (current)</td><td>0%</td><td style="color:var(--green);font-weight:500;">● Green</td></tr>
+          <tr><td><strong>Group 2</strong></td><td>Special Mention</td><td>DPD 1–30 days</td><td>5%</td><td style="color:#b8963e;font-weight:500;">● Yellow</td></tr>
+          <tr><td><strong>Group 3</strong></td><td>Substandard</td><td>DPD 31–90 days</td><td>20%</td><td style="color:#e8963e;font-weight:500;">● Orange</td></tr>
+          <tr><td><strong>Group 4</strong></td><td>Doubtful</td><td>DPD 91–180 days</td><td>50%</td><td style="color:#c0392b;font-weight:500;">● Red</td></tr>
+          <tr><td><strong>Group 5</strong></td><td>Loss</td><td>DPD &gt;180 days</td><td>100%</td><td style="color:#8b0000;font-weight:500;">● Dark Red</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:10px;line-height:1.6;"><strong>Non-Performing Loans (NPL)</strong> = Group 3 + Group 4 + Group 5. Target NPL ratio for Vietnam banking sector: &lt; 3% (NHNN), Internal target for major banks: &lt; 2%.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Vietnamese Banking Context 2024–2025</div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-users" aria-hidden="true"></i> Vietnamese Customer Segments</div>
+        <ul style="font-size:12px;color:var(--text-muted);line-height:1.85;padding-left:1.1rem;margin-bottom:12px;">
+          <li><strong>Retail customers:</strong> Home loans, consumer finance, car loans</li>
+          <li><strong>SME:</strong> Working capital, investment loans</li>
+          <li><strong>Large corporates (CIB/FDI):</strong> Project finance, trade finance</li>
+          <li><strong>Priority/VIP customers:</strong> Wealth management, investment</li>
+        </ul>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-map-pin" aria-hidden="true"></i> Geographic Coverage</div>
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">Regional model: Northern Region (Hanoi + Northern Provinces), Southern Region (HCMC + Mekong Delta), Central Region, Southeast Region, Central Highlands. Head offices are typically located in Hanoi or HCMC.</p>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Vietnam-Specific Risk Challenges</div>
+        <ul style="font-size:12px;color:var(--text-muted);line-height:1.85;padding-left:1.1rem;margin-bottom:12px;">
+          <li>Post-COVID restructured loans (Circulars 01, 03) require separate tracking</li>
+          <li>Real estate credit concentration — monitor by sector</li>
+          <li>Corporate bond exposure risk in investment portfolio</li>
+          <li>Deposit rate cap pressure affecting CASA competition</li>
+        </ul>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:5px;"><i class="ti ti-trending-up" aria-hidden="true"></i> SBV Targets 2024</div>
+        <ul style="font-size:12px;color:var(--text-muted);line-height:1.85;padding-left:1.1rem;">
+          <li>System-wide credit growth target: 14–15%/year</li>
+          <li>System-wide NPL target: &lt; 3%</li>
+          <li>LDR ratio: &lt; 85% (state-owned) / &lt; 80% (private)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 3: DATA MODEL ══ -->
+<div class="section" id="sec-data">
+  <p class="page-subtitle">Section 3 of 10</p>
+  <h1 class="page-title">Data Model Design</h1>
+
+  <div class="card">
+    <div class="card-title">Multi-Fact Star Schema Architecture — Banking Standard</div>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.75;margin-bottom:1.25rem;">Banking BI requires a multi-fact architecture: multiple Fact tables (one per business process) sharing a set of conformed Dimension tables. Each Fact table captures a different grain — daily balance snapshots, loan applications, transactions, or NPL classification events.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:flex-start;padding:1.5rem;background:var(--navy2);border-radius:10px;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="schema-table" style="border-color:rgba(192,57,43,0.3);">
+          <div class="schema-table-header fact">FactLoanBalance</div>
+          <div class="schema-field pk">LoanBalanceID (PK)</div>
+          <div class="schema-field fk">DateKey · CustomerKey · BranchKey</div>
+          <div class="schema-field fk">SanPhamKey · VungKey</div>
+          <div class="schema-field">OutstandingBalance</div>
+          <div class="schema-field">DisbursedAmount</div>
+          <div class="schema-field">InterestRate (%/year)</div>
+          <div class="schema-field">LoanStatus</div>
+          <div class="schema-field">DaysPastDue (DPD)</div>
+          <div class="schema-field">LoanGroup (1–5 TT02)</div>
+          <div class="schema-field">NPLFlag (0/1)</div>
+          <div class="schema-field">ProvisionAmount</div>
+        </div>
+        <div class="schema-table" style="border-color:rgba(192,57,43,0.3);">
+          <div class="schema-table-header fact">FactDepositBalance</div>
+          <div class="schema-field pk">DepositBalanceID (PK)</div>
+          <div class="schema-field fk">DateKey · CustomerKey · BranchKey</div>
+          <div class="schema-field fk">SanPhamKey · VungKey</div>
+          <div class="schema-field">DepositBalance</div>
+          <div class="schema-field">DepositRate (%/year)</div>
+          <div class="schema-field">CASAFlag (1=CASA, 0=Term)</div>
+          <div class="schema-field">AccountStatus</div>
+          <div class="schema-field">MaturityDate</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="schema-table" style="border-color:rgba(192,57,43,0.3);">
+          <div class="schema-table-header fact">FactLoanApplication</div>
+          <div class="schema-field pk">ApplicationID (PK)</div>
+          <div class="schema-field fk">DateKey · CustomerKey · BranchKey</div>
+          <div class="schema-field">RequestedAmount</div>
+          <div class="schema-field">ApprovedAmount</div>
+          <div class="schema-field">ApplicationStatus</div>
+          <div class="schema-field">ProcessingDays</div>
+          <div class="schema-field">RejectionReason</div>
+        </div>
+        <div class="schema-table" style="border-color:rgba(192,57,43,0.3);">
+          <div class="schema-table-header fact">FactNoXau (NPL)</div>
+          <div class="schema-field pk">NPLID (PK)</div>
+          <div class="schema-field fk">NgayKey · VayKey · KHKey</div>
+          <div class="schema-field">NPLBalance</div>
+          <div class="schema-field">DaysPastDue (DPD)</div>
+          <div class="schema-field">LoanGroup (3/4/5)</div>
+          <div class="schema-field">RecoveryAmount</div>
+          <div class="schema-field">ProvisionRequired</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="schema-table" style="border-color:rgba(21,96,168,0.3);">
+          <div class="schema-table-header dim">DimDate</div>
+          <div class="schema-field pk">DateKey (PK)</div>
+          <div class="schema-field">FullDate · Year · Quarter</div>
+          <div class="schema-field">Month · MonthName · Week</div>
+          <div class="schema-field">IsMonthEnd · IsQuarterEnd</div>
+          <div class="schema-field">FiscalYear · FiscalQuarter</div>
+        </div>
+        <div class="schema-table" style="border-color:rgba(21,96,168,0.3);">
+          <div class="schema-table-header dim">DimKhachHang</div>
+          <div class="schema-field pk">CustomerKey (PK)</div>
+          <div class="schema-field">CustomerName · CIF · NationalID</div>
+          <div class="schema-field">Segment (Retail/SME/Corporate)</div>
+          <div class="schema-field">CustomerGroup · Tier (Gold/Platinum)</div>
+          <div class="schema-field">Province · District · YearOfBirth</div>
+          <div class="schema-field">RMID · RelationshipStartDate</div>
+        </div>
+        <div class="schema-table" style="border-color:rgba(26,95,176,0.4);min-width:195px;">
+          <div class="schema-table-header dim">DimBranch — Flatten</div>
+          <div class="schema-field pk">BranchKey (Surrogate PK)</div>
+          <div style="height:0.5px;background:var(--border);margin:5px 0;"></div>
+          <div style="font-size:9.5px;color:#1a7a50;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:3px;">Each row = 1 PGD / 1 Branch</div>
+          <div class="schema-field branch-child">Branch_code (NK — mã PGD/CN)</div>
+          <div class="schema-field branch-child">Branch_name (PGD/Branch name)</div>
+          <div class="schema-field">Branch_type (Branch / PGD / Counter)</div>
+          <div class="schema-field">IsParent (1=Parent Branch, 0=PGD)</div>
+          <div class="schema-field">Branch_manager (PGD Head/Director)</div>
+          <div class="schema-field">Branch_tier (Hạng PGD)</div>
+          <div class="schema-field">Branch_open_date</div>
+          <div class="schema-field">IsActive (1/0)</div>
+          <div style="height:0.5px;background:var(--border);margin:5px 0;"></div>
+          <div style="font-size:9.5px;color:#1a7a50;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:3px;">Parent Branch info (flatten)</div>
+          <div class="schema-field branch-parent">Parent_branch_code (FK = Parent Branch NK)</div>
+          <div class="schema-field branch-parent">Parent_branch_name</div>
+          <div class="schema-field">Parent_director (Branch Director)</div>
+          <div class="schema-field">Parent_region (Region)</div>
+          <div class="schema-field">Parent_province (Province/City)</div>
+          <div style="height:0.5px;background:var(--border);margin:5px 0;"></div>
+          <div style="font-size:9px;color:var(--text-muted);font-style:italic;line-height:1.5;">Parent Branch: Branch_code = Parent_branch_code<br>PGD: Branch_code ≠ Parent_branch_code</div>
+        </div>
+        <div class="schema-table" style="border-color:rgba(21,96,168,0.3);">
+          <div class="schema-table-header dim">DimSanPham</div>
+          <div class="schema-field pk">ProductKey (PK)</div>
+          <div class="schema-field">ProductName · ProductCode</div>
+          <div class="schema-field">ProductType (Loan/Deposit)</div>
+          <div class="schema-field">Category · SubCategory</div>
+          <div class="schema-field">BaseRate · MinTenor · MaxTenor</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ══ SECTION 4: KPI FRAMEWORK ══ -->
+<div class="section" id="sec-kpi">
+  <p class="page-subtitle">Section 4 of 10</p>
+  <h1 class="page-title">Banking KPI Framework</h1>
+
+  <div class="card">
+    <div class="card-title">Loan KPIs <span class="badge badge-blue">Loan Portfolio</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>KPI</th><th>Formula</th><th>Business Meaning</th><th>Executive Interpretation</th><th>Target</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Total Loan Outstanding</strong></td><td class="formula">SUM(FactLoanBalance[OutstandingBalance])</td><td style="font-size:11.5px;">Total outstanding principal of all active loans</td><td style="font-size:11.5px;">The bank's primary earning asset. Growth is positive when credit quality is maintained.</td><td><span class="nhnn-tag">14–15%/year</span></td></tr>
+          <tr><td><strong>Loan Growth %</strong></td><td class="formula">DIVIDE(LoanCM - LoanPM, LoanPM)</td><td style="font-size:11.5px;">Month-over-month change in outstanding loan balance</td><td style="font-size:11.5px;">Track vs SBV-assigned credit growth quota. Exceeding the quota triggers regulatory penalties.</td><td><span class="nhnn-tag">SBV-assigned quota</span></td></tr>
+          <tr><td><strong>New Disbursement MTD</strong></td><td class="formula">SUM(FactLoanBalance[DisbursedAmount])</td><td style="font-size:11.5px;">Total new loans funded in the current month</td><td style="font-size:11.5px;">Leading indicator for future loan growth. Compare vs monthly target.</td><td>vs Monthly target</td></tr>
+          <tr><td><strong>Active Loan Customers</strong></td><td class="formula">DISTINCTCOUNT(CustomerKey) WHERE Status=Active</td><td style="font-size:11.5px;">Unique customers with at least one active loan</td><td style="font-size:11.5px;">Market penetration depth. Rising balance + flat customers = larger average loans.</td><td>Monthly increase</td></tr>
+          <tr><td><strong>Average Loan Balance per Customer</strong></td><td class="formula">DIVIDE([Total Loan Outstanding], [Loan Customers])</td><td style="font-size:11.5px;">Average loan value per borrowing customer</td><td style="font-size:11.5px;">Rising = moving upmarket. Declining = acquiring smaller borrowers with higher cost-to-serve.</td><td>By segment</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Deposit KPIs <span class="badge badge-green">Funding</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>KPI</th><th>Formula</th><th>Business Meaning</th><th>Alert Threshold</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Total Deposits</strong></td><td class="formula">SUM(FactHuyDongVon[DepositBalance])</td><td style="font-size:11.5px;">Total customer deposits held by the bank</td><td>Must grow at ≥ loan growth rate to maintain LDR</td></tr>
+          <tr><td><strong>CASA Balance (CASA)</strong></td><td class="formula">SUM(DepositBalance) WHERE CASAFlag=1</td><td style="font-size:11.5px;">Current accounts + demand savings (CASA)</td><td style="color:var(--red);">Alert if &lt; 20% of total deposits</td></tr>
+          <tr><td><strong>Term Deposits</strong></td><td class="formula">SUM(DepositBalance) WHERE CoPhaiKKH=0</td><td style="font-size:11.5px;">Fixed-term deposits (1–36 months)</td><td>Monitor maturity schedule to avoid liquidity cliff</td></tr>
+          <tr><td><strong>CASA Ratio</strong></td><td class="formula">DIVIDE([CASA Balance], [Total Deposits])</td><td style="font-size:11.5px;">% of total deposits in low-cost CASA accounts</td><td style="color:var(--red);">Alert if drops &gt;2pp vs prior period</td></tr>
+          <tr><td><strong>Deposit Growth %</strong></td><td class="formula">DIVIDE(DepCM - DepPM, DepPM)</td><td style="font-size:11.5px;">Month-over-month change in deposit balance</td><td>Must be positive. Sustained negative = liquidity concern</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Combined & Risk KPIs <span class="badge badge-risk">Per SBV Standards</span></div>
+    <div class="two-col">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Combined KPI</th><th>Formula</th><th>SBV Regulation</th></tr></thead>
+          <tbody>
+            <tr><td><strong>LDR Ratio</strong></td><td class="formula">DIVIDE([Total Loan Outstanding], [Total Deposits])</td><td style="font-size:11.5px;"><span class="nhnn-tag">TT22: ≤ 80–85%</span></td></tr>
+            <tr><td><strong>Net Interest Income (NII)</strong></td><td class="formula">Interest Income − Interest Expense</td><td style="font-size:11.5px;">Must be positive and growing</td></tr>
+            <tr><td><strong>Interest Rate Spread</strong></td><td class="formula">Avg Lending Rate − Avg Deposit Rate</td><td style="font-size:11.5px;">Target: &gt;2.5%</td></tr>
+            <tr><td><strong>Cross-sell Ratio</strong></td><td class="formula">Products per Customer</td><td style="font-size:11.5px;">Target: &gt;2 products/customer</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Risk KPIs (TT02)</th><th>Formula</th><th>SBV Alert Threshold</th></tr></thead>
+          <tbody>
+            <tr><td><strong>NPL Balance</strong></td><td class="formula">SUM(FactNoXau[NPLBalance])</td><td>Monitor trend</td></tr>
+            <tr><td><strong>NPL Ratio</strong></td><td class="formula">DIVIDE([NPL Balance], [Total Loan Outstanding])</td><td style="font-size:11.5px;color:#c0362b;">Cảnh báo: &gt;3%</td></tr>
+            <tr><td><strong>Overdue Balance</strong></td><td class="formula">SUM(OutstandingBalance WHERE DPD &gt; 0)</td><td>Monitor weekly</td></tr>
+            <tr><td><strong>Provision Amount</strong></td><td class="formula">SUM(ProvisionRequired)</td><td>Direct P&amp;L impact</td></tr>
+            <tr><td><strong>PAR Ratio</strong></td><td class="formula">DIVIDE([Overdue Balance], [Total Loan Outstanding])</td><td style="font-size:11.5px;color:#c0362b;">Cảnh báo: &gt;5%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 5: DASHBOARD ══ -->
+<div class="section" id="sec-dash">
+  <p class="page-subtitle">Section 5 of 10</p>
+  <h1 class="page-title">Dashboard — 6 Visual Pages</h1>
+
+  <!-- ── PAGE 1: EXECUTIVE OVERVIEW ── -->
+  <div class="card">
+    <div class="card-title">Page 1 — Executive Overview <span class="badge">CEO · CFO · Board</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card info"><div class="kpi-label">Total Loan Outstanding</div><div class="kpi-value">VND 46,250 Bn</div><div class="kpi-delta up">↑ 8.4% so T-1</div></div>
+      <div class="kpi-card pos"><div class="kpi-label">Total Deposits</div><div class="kpi-value">VND 57,320 Bn</div><div class="kpi-delta up">↑ 11.2% so T-1</div></div>
+      <div class="kpi-card info"><div class="kpi-label">Loan Growth</div><div class="kpi-value">8.4%</div><div class="kpi-delta neu">vs Target: 95%</div></div>
+      <div class="kpi-card info"><div class="kpi-label">Deposit Growth</div><div class="kpi-value">11.2%</div><div class="kpi-delta up">↑ vs Prior Month</div></div>
+      <div class="kpi-card"><div class="kpi-label">LDR Ratio</div><div class="kpi-value">80.7%</div><div class="kpi-delta neu">Within SBV Limit</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">NPL Ratio</div><div class="kpi-value">2.80%</div><div class="kpi-delta down">↑ 0.3pp PM</div></div>
+    </div>
+    <div class="alert-box danger" style="margin-bottom:1rem;"><i class="ti ti-alert-triangle" aria-hidden="true"></i><span><strong>Risk Alert:</strong> Central Region NPL ratio exceeded internal threshold of 3.0%. Immediate review required by Risk Management.</span></div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Loan vs Deposit Trend (VND Billion)</div>
+        <div class="chart-wrap h120"><canvas id="d1_trend" role="img" aria-label="Monthly loan and deposit trend"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">LDR Ratio So At Threshold TT22 (%)</div>
+        <div class="chart-wrap h120"><canvas id="d1_ldr" role="img" aria-label="Monthly LDR vs 80% Circular 22 threshold"></canvas></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Loan Portfolio by Product</div>
+        <div class="chart-wrap" style="height:140px;"><canvas id="d1_loan_sp" role="img" aria-label="Loan portfolio by product mix"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Deposit Portfolio by Product</div>
+        <div class="chart-wrap" style="height:140px;"><canvas id="d1_hdv_sp" role="img" aria-label="Deposit portfolio by product mix"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Top 5 Branches — Loan Outstanding (Bn)</div>
+        <div class="chart-wrap" style="height:140px;"><canvas id="d1_top_cn" role="img" aria-label="Top 5 branches by loan outstanding"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE 2: LOAN ANALYTICS ── -->
+  <div class="card">
+    <div class="card-title">Page 2 — Loan Portfolio Analytics <span class="badge badge-blue">Credit Department</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card info"><div class="kpi-label">Total Loan Outstanding</div><div class="kpi-value">VND 46,250 Bn</div></div>
+      <div class="kpi-card info"><div class="kpi-label">New Disbursement MTD</div><div class="kpi-value">2,960 Bn</div><div class="kpi-delta up">↑ Above Target</div></div>
+      <div class="kpi-card"><div class="kpi-label">Loan Customers</div><div class="kpi-value">42,180</div></div>
+      <div class="kpi-card"><div class="kpi-label">Avg Loan/Customer</div><div class="kpi-value">1.10 Bn</div><div class="kpi-delta up">↑ 4.1%</div></div>
+      <div class="kpi-card info"><div class="kpi-label">Loan Growth</div><div class="kpi-value">8.4%</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">NPL</div><div class="kpi-value">2.80%</div></div>
+    </div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Loan Outstanding & Disbursement Trend (Bn)</div>
+        <div class="chart-wrap h120"><canvas id="d2_trend" role="img" aria-label="Loan outstanding and disbursement by month"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Loan Outstanding by Product (Bn)</div>
+        <div class="chart-wrap h120"><canvas id="d2_sp" role="img" aria-label="Loan outstanding by product type"></canvas></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Loan by Customer Segment (%)</div>
+        <div class="chart-wrap h120"><canvas id="d2_pk" role="img" aria-label="Loan portfolio share by customer segment"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Loan Maturity Schedule (Bn)</div>
+        <div class="chart-wrap h120"><canvas id="d2_maturity" role="img" aria-label="Loan maturity schedule by tenor"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE 3: DEPOSIT ANALYTICS ── -->
+  <div class="card">
+    <div class="card-title">Page 3 — Deposit Analytics <span class="badge badge-green">Funding Department</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card pos"><div class="kpi-label">Total Deposits</div><div class="kpi-value">VND 57,320 Bn</div></div>
+      <div class="kpi-card pos"><div class="kpi-label">CASA Balance</div><div class="kpi-value">19,530 Bn</div><div class="kpi-delta down">CASA 34%</div></div>
+      <div class="kpi-card"><div class="kpi-label">Term Deposits</div><div class="kpi-value">37,790 Bn</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">CASA Ratio</div><div class="kpi-value">34.1%</div><div class="kpi-delta down">↓ from 38%</div></div>
+      <div class="kpi-card pos"><div class="kpi-label">Deposit Customers</div><div class="kpi-value">68,450</div></div>
+      <div class="kpi-card pos"><div class="kpi-label">Deposit Growth</div><div class="kpi-value">11.2%</div></div>
+    </div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Deposit Trend & CASA Ratio</div>
+        <div class="chart-wrap h120"><canvas id="d3_trend" role="img" aria-label="Deposit and CASA ratio by month"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">CASA vs Term Deposits (Bn)</div>
+        <div class="chart-wrap h120"><canvas id="d3_casa" role="img" aria-label="CASA vs term deposit share by month"></canvas></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Deposits by Product (Bn)</div>
+        <div class="chart-wrap h120"><canvas id="d3_sp" role="img" aria-label="Deposits by product type"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Term Deposit Maturity Schedule (Bn)</div>
+        <div class="chart-wrap h120"><canvas id="d3_maturity" role="img" aria-label="Term deposit maturity schedule"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TRANG 4: CHI NHÁNH ── -->
+  <div class="card">
+    <div class="card-title">Page 4 — Branch Performance <span class="badge">Retail Banking</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card pos"><div class="kpi-label">Top Loan Branch</div><div class="kpi-value" style="font-size:13px;">Hanoi HQ</div><div class="kpi-delta up">5,080 Bn Loans</div></div>
+      <div class="kpi-card pos"><div class="kpi-label">Top Deposit Branch</div><div class="kpi-value" style="font-size:13px;">HCM Quận 1</div><div class="kpi-delta up">6,810 Bn Deposits</div></div>
+      <div class="kpi-card info"><div class="kpi-label">Highest Growth</div><div class="kpi-value" style="font-size:13px;">Da Nang</div><div class="kpi-delta up">+24.3%</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">Highest NPL</div><div class="kpi-value" style="font-size:13px;">Central B</div><div class="kpi-delta down">NPL 4.2%</div></div>
+    </div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Loan vs Deposit by Branch (Bn)</div>
+        <div class="chart-wrap" style="height:160px;"><canvas id="d4_matrix" role="img" aria-label="Loan and deposit of each branch"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">NPL Ratio by Branch (%)</div>
+        <div class="chart-wrap" style="height:160px;"><canvas id="d4_npl" role="img" aria-label="NPL ratio per branch vs 3% SBV threshold"></canvas></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Loan Growth by Branch (%)</div>
+      <div class="chart-wrap" style="height:130px;"><canvas id="d4_growth" role="img" aria-label="Loan growth rate per branch"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ── PAGE 5: CUSTOMER SEGMENTS ── -->
+  <div class="card">
+    <div class="card-title">Page 5 — Customer Segment Analytics <span class="badge badge-blue">CRM</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Total Customers</div><div class="kpi-value">110,630</div></div>
+      <div class="kpi-card info"><div class="kpi-label">Loan Customers</div><div class="kpi-value">42.180</div></div>
+      <div class="kpi-card pos"><div class="kpi-label">Deposit Customers</div><div class="kpi-value">68.450</div></div>
+      <div class="kpi-card"><div class="kpi-label">Cross-sell</div><div class="kpi-value">1.6 products/customer</div><div class="kpi-delta down">Target: 2.0</div></div>
+    </div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Loan & Deposit by Customer Segment (Bn)</div>
+        <div class="chart-wrap" style="height:150px;"><canvas id="d5_seg" role="img" aria-label="Loan and deposit by customer segment"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Customer Count & Avg Loan per Customer by Segment</div>
+        <div class="chart-wrap" style="height:150px;"><canvas id="d5_avg" role="img" aria-label="Customer count and avg loan per segment"></canvas></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">NPL Ratio by Segment (%)</div>
+      <div class="chart-wrap" style="height:110px;"><canvas id="d5_npl" role="img" aria-label="NPL ratio by customer segment"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ── PAGE 6: RISK MONITORING ── -->
+  <div class="card">
+    <div class="card-title">Page 6 — Risk Monitoring <span class="badge badge-risk">CRO</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card risk"><div class="kpi-label">NPL Balance</div><div class="kpi-value">1,295 Bn</div><div class="kpi-delta down">↑ 68 Bn PM</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">NPL Ratio</div><div class="kpi-value">2.80%</div><div class="kpi-delta down">↑ 0.3pp</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">Overdue Balance</div><div class="kpi-value">2,313 Bn</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">Provision Amount</div><div class="kpi-value">622 Bn</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">PAR Ratio</div><div class="kpi-value">5.0%</div><div class="kpi-delta down">At Threshold</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">Past Due Customers</div><div class="kpi-value">3,842</div></div>
+    </div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">NPL Trend & 3% SBV Threshold NHNN</div>
+        <div class="chart-wrap h120"><canvas id="d6_npl_trend" role="img" aria-label="NPL ratio trend vs 3% SBV threshold"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Loan Classification TT02 — 5 Groups (Bn)</div>
+        <div class="chart-wrap h120"><canvas id="d6_nhom" role="img" aria-label="Loan classification into 5 groups per TT02"></canvas></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">Aging Bucket Analysis (Bn)</div>
+        <div class="chart-wrap h120"><canvas id="d6_aging" role="img" aria-label="Overdue loan aging bucket"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;">NPL Ratio by Product (%)</div>
+        <div class="chart-wrap h120"><canvas id="d6_npl_sp" role="img" aria-label="NPL ratio by loan product"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 6: DAX MEASURES ══ -->
+<div class="section" id="sec-dax">
+  <p class="page-subtitle">Section 6 of 10</p>
+  <h1 class="page-title">DAX Measures — Production Ready</h1>
+  <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.7;">All measures are organized in a dedicated <em>_BankingMeasures</em> table. Use CALCULATE with time-intelligence for all period comparisons.</p>
+
+  <div class="dax-block">
+    <div class="dax-label">01 — Total Loan Outstanding</div>
+    <div class="dax-code"><span class="dax-kw">Total Loan Outstanding</span> = 
+<span class="dax-fn">SUM</span>( FactDuNoTinDung[DuNoCuoiKy] )
+<span class="dax-comment">-- Sum of all active outstanding loan balances in the current filter context.
+-- Responds to all slicers: branch, product, segment, date.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">02 — Loan Previous Month</div>
+    <div class="dax-code"><span class="dax-kw">Loan Previous Month</span> = 
+<span class="dax-fn">CALCULATE</span>(
+    [Total Loan Outstanding],
+    <span class="dax-fn">PREVIOUSMONTH</span>( DimNgay[NgayDayDu] )
+)
+<span class="dax-comment">-- Uses PREVIOUSMONTH to retrieve prior month loan balance.
+-- Requires DimDate to be marked as a Date Table in Power BI.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">03 — Loan Growth %</div>
+    <div class="dax-code"><span class="dax-kw">Loan Growth %</span> = 
+<span class="dax-fn">VAR</span> DuNoThangNay = [Total Loan Outstanding]
+<span class="dax-fn">VAR</span> DuNoThangTruoc = [Loan Previous Month]
+<span class="dax-fn">RETURN</span>
+    <span class="dax-fn">DIVIDE</span>( DuNoThangNay - DuNoThangTruoc, DuNoThangTruoc, BLANK() )
+<span class="dax-comment">-- Month-over-month growth rate. Format as percentage.
+-- Returns BLANK() when no prior month data exists (avoids misleading zeros).</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">04 — CASA Balance (CASA Balance)</div>
+    <div class="dax-code"><span class="dax-kw">CASA Balance</span> = 
+<span class="dax-fn">CALCULATE</span>(
+    <span class="dax-fn">SUM</span>( FactHuyDongVon[DepositBalance] ),
+    FactHuyDongVon[CoPhaiKKH] = 1
+)
+<span class="dax-comment">-- Current accounts + demand savings (CASA) (CASA).
+-- Low-cost funding — key metric for NIM management.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">05 — CASA Ratio</div>
+    <div class="dax-code"><span class="dax-kw">CASA Ratio</span> = 
+<span class="dax-fn">DIVIDE</span>( [CASA Balance], [Total Deposits], 0 )
+<span class="dax-comment">-- % of total deposits in low-cost CASA. Target: > 30%.
+-- Red alert when it falls below 20%. Use conditional formatting.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">06 — LDR Ratio (Circular 22/SBV)</div>
+    <div class="dax-code"><span class="dax-kw">LDR Ratio</span> = 
+<span class="dax-fn">DIVIDE</span>( [Total Loan Outstanding], [Total Deposits], 0 )
+<span class="dax-comment">-- Loan-to-Deposit Ratio. Per Circular 22/2019/SBV:
+-- ≤ 85% (state-owned banks) or ≤ 80% (private commercial banks).
+-- Add a reference line at threshold for visual alert.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">07 — NPL Balance (NPL — Group 3+4+5)</div>
+    <div class="dax-code"><span class="dax-kw">NPL Balance</span> = 
+<span class="dax-fn">CALCULATE</span>(
+    <span class="dax-fn">SUM</span>( FactDuNoTinDung[DuNoCuoiKy] ),
+    FactDuNoTinDung[NhomNo] >= 3
+)
+<span class="dax-comment">-- NPL = Group 3 (Substandard) + Group 4 (Doubtful) + Group 5 (Loss).
+-- Per Circular 02/2013/SBV (amended by Circular 03/2023).</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">08 — NPL Ratio</div>
+    <div class="dax-code"><span class="dax-kw">NPL Ratio</span> = 
+<span class="dax-fn">DIVIDE</span>( [NPL Balance], [Total Loan Outstanding], 0 )
+<span class="dax-comment">-- Core risk metric. SBV alert threshold: 3%.
+-- Color-code: Green &lt; 2% | Amber 2–3% | Red &gt; 3%.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">09 — Net Interest Income (NII)</div>
+    <div class="dax-code"><span class="dax-kw">Net Interest Income</span> = 
+<span class="dax-fn">VAR</span> ThuLai = <span class="dax-fn">SUMX</span>( FactDuNoTinDung, FactDuNoTinDung[DuNoCuoiKy] * FactDuNoTinDung[LaiSuatVay] / 12 )
+<span class="dax-fn">VAR</span> ChiLai = <span class="dax-fn">SUMX</span>( FactHuyDongVon, FactHuyDongVon[DepositBalance] * FactHuyDongVon[LaiSuatHuyDong] / 12 )
+<span class="dax-fn">RETURN</span>
+    ThuLai - ChiLai
+<span class="dax-comment">-- Monthly NII estimate (annual rate / 12).
+-- For higher accuracy, use actual accrued interest data from CoreBanking.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">10 — Provision Coverage Ratio</div>
+    <div class="dax-code"><span class="dax-kw">Provision Coverage Ratio</span> = 
+<span class="dax-fn">DIVIDE</span>(
+    <span class="dax-fn">SUM</span>( FactNoXau[ProvisionRequired] ),
+    [NPL Balance],
+    0
+)
+<span class="dax-comment">-- Provision coverage over NPL balance. Target: ≥ 100%.
+-- Below 100% = under-provisioned, requires additional provision → P&amp;L impact.</span></div>
+  </div>
+
+  <div class="dax-block">
+    <div class="dax-label">11 — Loan Classification by TT02 Group (1–5)</div>
+    <div class="dax-code"><span class="dax-kw">DN Group 1</span> = <span class="dax-fn">CALCULATE</span>([Total Loan Outstanding], FactDuNoTinDung[NhomNo] = 1)
+<span class="dax-kw">DN Group 2</span> = <span class="dax-fn">CALCULATE</span>([Total Loan Outstanding], FactDuNoTinDung[NhomNo] = 2)
+<span class="dax-kw">DN Group 3</span> = <span class="dax-fn">CALCULATE</span>([Total Loan Outstanding], FactDuNoTinDung[NhomNo] = 3)
+<span class="dax-kw">DN Group 4</span> = <span class="dax-fn">CALCULATE</span>([Total Loan Outstanding], FactDuNoTinDung[NhomNo] = 4)
+<span class="dax-kw">DN Group 5</span> = <span class="dax-fn">CALCULATE</span>([Total Loan Outstanding], FactDuNoTinDung[NhomNo] = 5)
+<span class="dax-comment">-- 5 separate measures for the 5 TT02 loan groups.
+-- Used in stacked bar charts to visualize loan portfolio quality structure.</span></div>
+  </div>
+</div>
+
+<!-- ══ SECTION 7: DATASET DESIGN ══ -->
+<div class="section" id="sec-dataset">
+  <p class="page-subtitle">Section 7 of 10</p>
+  <h1 class="page-title">Sample Dataset Design</h1>
+
+  <div class="card">
+    <div class="card-title">Recommended Data Volume for Portfolio Demo</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Dataset</th><th>Rows</th><th>Period</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Loan Accounts</strong></td><td>5,000 – 10,000 accounts</td><td>24 months history</td><td>Monthly balance snapshot. Use monthly grain for demo (daily would be too large).</td></tr>
+          <tr><td><strong>Deposit Accounts</strong></td><td>8,000 – 15,000 accounts</td><td>24 months</td><td>Includes CASA + term deposits. CASA ratio ~30–35%.</td></tr>
+          <tr><td><strong>Customers</strong></td><td>10,000 – 20,000 customers</td><td>Static dimension</td><td>5 segments: Retail / SME / Corporate / VIP / Mass Market.</td></tr>
+          <tr><td><strong>Branches</strong></td><td>50 – 100 branches</td><td>Static dimension</td><td>5 regions: North, South, Central, Southeast, Central Highlands.</td></tr>
+          <tr><td><strong>NPL Records</strong></td><td>500 – 1,000 records</td><td>24 months</td><td>~3–5% of loan accounts classified NPL (Groups 3, 4, 5).</td></tr>
+          <tr><td><strong>Loan Applications</strong></td><td>2,000 – 5,000 records</td><td>24 months</td><td>Status: Approved / Rejected / Pending.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Loan Dataset Fields</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td class="formula">MaKhoanVay</td><td>String</td><td>TV-2024-00001</td></tr>
+            <tr><td class="formula">MaKhachHang (CIF)</td><td>String</td><td>CIF-10042</td></tr>
+            <tr><td class="formula">MaChiNhanh</td><td>String</td><td>CN-HN-001</td></tr>
+            <tr><td class="formula">LoaiSanPham</td><td>String</td><td>Home Loan / Vay SME</td></tr>
+            <tr><td class="formula">SoTienVay (VND)</td><td>Decimal</td><td>2.500.000.000</td></tr>
+            <tr><td class="formula">DuNoCuoiKy</td><td>Decimal</td><td>1.885.000.000</td></tr>
+            <tr><td class="formula">NgayGiaiNgan</td><td>Date</td><td>15/03/2023</td></tr>
+            <tr><td class="formula">MaturityDate</td><td>Date</td><td>15/03/2033</td></tr>
+            <tr><td class="formula">LaiSuatVay (%/nam)</td><td>Decimal</td><td>9,5</td></tr>
+            <tr><td class="formula">NhomNo</td><td>Integer</td><td>1 / 2 / 3 / 4 / 5</td></tr>
+            <tr><td class="formula">DaysPastDue (DPD)</td><td>Integer</td><td>0 / 15 / 45 / 120</td></tr>
+            <tr><td class="formula">CoPhaiNPL</td><td>Boolean</td><td>0 / 1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Deposit Dataset Fields</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td class="formula">MaTaiKhoan</td><td>String</td><td>TK-2024-00421</td></tr>
+            <tr><td class="formula">MaKhachHang (CIF)</td><td>String</td><td>CIF-10042</td></tr>
+            <tr><td class="formula">MaChiNhanh</td><td>String</td><td>CN-HCM-003</td></tr>
+            <tr><td class="formula">LoaiSanPham</td><td>String</td><td>TK KKH / Term 12M</td></tr>
+            <tr><td class="formula">DepositBalance (VND)</td><td>Decimal</td><td>5.000.000.000</td></tr>
+            <tr><td class="formula">NgayMoTaiKhoan</td><td>Date</td><td>01/06/2022</td></tr>
+            <tr><td class="formula">MaturityDate</td><td>Date</td><td>01/06/2025</td></tr>
+            <tr><td class="formula">LaiSuatHuyDong (%/nam)</td><td>Decimal</td><td>5,5</td></tr>
+            <tr><td class="formula">TrangThaiTK</td><td>String</td><td>Active / Closed / Rolled Over</td></tr>
+            <tr><td class="formula">CoPhaiKKH (CASA)</td><td>Boolean</td><td>1 = KKH, 0 = CKH</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 8: INSIGHTS ══ -->
+<div class="section" id="sec-insights">
+  <p class="page-subtitle">Section 8 of 10</p>
+  <h1 class="page-title">20 Automated Banking Insights</h1>
+  <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.75rem;line-height:1.7;">These insights are automatically surfaced by the dashboard — aligned with Vietnamese commercial banking reporting and analysis standards.</p>
+
+  <div class="insights-grid">
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 01 · Loans</div><div class="insight-title">Total loan outstanding grew 8.4% MoM to VND 46,250 Bn</div></div><span class="insight-badge ib-up">↑ 8.4%</span></div>
+      <div class="legend"><span><span class="leg-dot" style="background:#1560a8;"></span>This Year</span><span><span class="leg-dot" style="background:#b4b2a9;border:1px dashed #888;"></span>Last Year</span></div>
+      <div class="chart-wrap h110"><canvas id="ci1" role="img" aria-label="Monthly loan outstanding trend"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 02 · Deposits</div><div class="insight-title">Deposits growing faster than loans, improving LDR</div></div><span class="insight-badge ib-up">↑ 11.2% Deposits</span></div>
+      <div class="legend"><span><span class="leg-dot" style="background:#1a7a4a;"></span>Deposits</span><span><span class="leg-dot" style="background:#1560a8;"></span>Loans</span></div>
+      <div class="chart-wrap h110"><canvas id="ci2" role="img" aria-label="Loan vs deposit growth comparison"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 03 · Risk</div><div class="insight-title">SME: 42% of total loans but 58% of NPL balance</div></div><span class="insight-badge ib-down">High Risk</span></div>
+      <div class="bar-row"><div class="bar-lbl">SME - DN</div><div class="bar-track"><div class="bar-fill" style="width:42%;background:#1560a8;"></div></div><div class="bar-val">42% DN</div></div>
+      <div class="bar-row"><div class="bar-lbl">SME - NX</div><div class="bar-track"><div class="bar-fill" style="width:58%;background:#c0392b;"></div></div><div class="bar-val">58% NX</div></div>
+      <p class="insight-note">SME credit policy review recommended — NPL concentration is disproportionate to portfolio share.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 04 · Deposit Quality</div><div class="insight-title">CASA ratio declined from 38% to 34% — funding cost rising</div></div><span class="insight-badge ib-down">↓ 4pp</span></div>
+      <div class="legend"><span><span class="leg-dot" style="background:#1a7a4a;"></span>CASA Ratio %</span></div>
+      <div class="chart-wrap h110"><canvas id="ci4" role="img" aria-label="CASA ratio declining trend by quarter"></canvas></div>
+      <p class="insight-note">Every 1pp drop in CASA = ~0.04% higher funding cost on total deposits. CASA acquisition campaigns needed.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 05 · Branch</div><div class="insight-title">Top 10 branches hold 45% of total deposit balance</div></div><span class="insight-badge ib-neu">Concentration</span></div>
+      <div class="bar-row"><div class="bar-lbl">Top 10 CN</div><div class="bar-track"><div class="bar-fill" style="width:45%;background:#1560a8;"></div></div><div class="bar-val">45%</div></div>
+      <div class="bar-row"><div class="bar-lbl">Next 30</div><div class="bar-track"><div class="bar-fill" style="width:38%;background:#6fa8d4;"></div></div><div class="bar-val">38%</div></div>
+      <div class="bar-row"><div class="bar-lbl">Remaining</div><div class="bar-track"><div class="bar-fill" style="width:17%;background:#b5d4f4;"></div></div><div class="bar-val">17%</div></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 06 · Regional Risk</div><div class="insight-title">Central Region NPL ratio exceeded internal 3% threshold</div></div><span class="insight-badge ib-down">Alert</span></div>
+      <div class="chart-wrap h110"><canvas id="ci6" role="img" aria-label="NPL ratio by region with 3% threshold line"></canvas></div>
+      <p class="insight-note">Central Region: 3.4% — Risk Management and regional branches must conduct immediate portfolio review.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 07 · Liquidity (Circular 22)</div><div class="insight-title">LDR stable at 80.7% — within Circular 22/SBV limit</div></div><span class="insight-badge ib-neu">An Toàn</span></div>
+      <div class="legend"><span><span class="leg-dot" style="background:#1560a8;"></span>Actual LDR</span><span><span class="leg-dot" style="background:#c0392b;border:1px dashed #c0392b;"></span>Circular 22 limit: 80%</span></div>
+      <div class="chart-wrap h110"><canvas id="ci7" role="img" aria-label="LDR trend vs 80% Circular 22 limit"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 08 · Profitability</div><div class="insight-title">Net interest income grew 6.2% — spread widening to 3.1%</div></div><span class="insight-badge ib-up">↑ NIM</span></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num" style="color:#1a7a4a;">299 Bn</div><div class="stat-lbl">Interest Income (monthly)</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:#c0392b;">133 Bn</div><div class="stat-lbl">Interest Expense (monthly)</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:55%;background:#1a7a4a;"></div></div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:5px;">NII = VND 166 Bn/month · Spread = 3.1% · NIM improving</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 09 · Customers</div><div class="insight-title">Priority/VIP customers: 3% of count but 28% of total loan balance</div></div><span class="insight-badge ib-neu">High Value</span></div>
+      <div class="bar-row"><div class="bar-lbl">VIP/Priority</div><div class="bar-track"><div class="bar-fill" style="width:28%;background:#b8963e;"></div></div><div class="bar-val">28% DN</div></div>
+      <div class="bar-row"><div class="bar-lbl">Corporate/CIB</div><div class="bar-track"><div class="bar-fill" style="width:35%;background:#1560a8;"></div></div><div class="bar-val">35% DN</div></div>
+      <div class="bar-row"><div class="bar-lbl">SME</div><div class="bar-track"><div class="bar-fill" style="width:25%;background:#6fa8d4;"></div></div><div class="bar-val">25% DN</div></div>
+      <div class="bar-row"><div class="bar-lbl">Retail</div><div class="bar-track"><div class="bar-fill" style="width:12%;background:#b5d4f4;"></div></div><div class="bar-val">12% DN</div></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 10 · Product Portfolio</div><div class="insight-title">Home Loan NPL 0.8% — far below Business Loan at 4.2%</div></div><span class="insight-badge ib-neu">Risk Mix</span></div>
+      <div class="chart-wrap h110"><canvas id="ci10" role="img" aria-label="NPL ratio by loan product type"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 11 · Branch Growth</div><div class="insight-title">Da Nang branch: highest loan growth at +24.3% MoM</div></div><span class="insight-badge ib-up">↑ 24,3%</span></div>
+      <div class="chart-wrap h110"><canvas id="ci11" role="img" aria-label="Top branches by loan growth rate"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 12 · Cross-sell</div><div class="insight-title">Average 1.6 products/customer — below target of 2.0</div></div><span class="insight-badge ib-down">Below Target</span></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num" style="color:#c0392b;">1,6</div><div class="stat-lbl">Actual products/customer</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:#1a7a4a;">2,0</div><div class="stat-lbl">Target products/customer</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:80%;background:#b8963e;"></div></div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:5px;">80% of target — VIP and Corporate segments have the highest cross-sell potential.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 13 · Deposit Liquidity</div><div class="insight-title">VND 7,800 Bn in term deposits maturing within the next 60 days</div></div><span class="insight-badge ib-down">Liquidity Risk</span></div>
+      <div class="chart-wrap h110"><canvas id="ci13" role="img" aria-label="Term deposit maturity schedule by month"></canvas></div>
+      <p class="insight-note">ALCO must prepare rollover programs for key depositors before maturity dates.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 14 · Early Warning</div><div class="insight-title">Group 2 loans (1–30 DPD) up 18% — early NPL warning signal</div></div><span class="insight-badge ib-down">Early Warning</span></div>
+      <div class="bar-row"><div class="bar-lbl">Group 1 (Current)</div><div class="bar-track"><div class="bar-fill" style="width:85%;background:#1a7a4a;"></div></div><div class="bar-val">39,290 Bn</div></div>
+      <div class="bar-row"><div class="bar-lbl">Group 2 (Special Mention)</div><div class="bar-track"><div class="bar-fill" style="width:7%;background:#b8963e;"></div></div><div class="bar-val">3,240 Bn</div></div>
+      <div class="bar-row"><div class="bar-lbl">Group 3 (Substandard)</div><div class="bar-track"><div class="bar-fill" style="width:4%;background:#e8963e;"></div></div><div class="bar-val">1,845 Bn</div></div>
+      <div class="bar-row"><div class="bar-lbl">Group 4 (Doubtful)</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:#c0392b;"></div></div><div class="bar-val">925 Bn</div></div>
+      <div class="bar-row"><div class="bar-lbl">Group 5 (Loss)</div><div class="bar-track"><div class="bar-fill" style="width:1.5%;background:#8b0000;"></div></div><div class="bar-val">950 Bn</div></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 15 · Branch Deposits</div><div class="insight-title">HCMC District 1 branch leads deposits — 11.8% of total network balance</div></div><span class="insight-badge ib-up">Top CN</span></div>
+      <div class="chart-wrap h110"><canvas id="ci15" role="img" aria-label="Top 5 branches by deposit balance"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 16 · Segment</div><div class="insight-title">Corporate/CIB: lowest NPL (0.4%), highest avg loan VND 45 Bn</div></div><span class="insight-badge ib-up">Low Risk</span></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num" style="color:#1a7a4a;">0,4%</div><div class="stat-lbl">Corporate NPL ratio</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:#1560a8;">45 Bn</div><div class="stat-lbl">Avg loan per Corporate customer</div></div>
+      </div>
+      <p class="insight-note">Corporate/CIB is the most efficient lending segment — recommend increasing allocation and expanding portfolio.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 17 · Approval Rate</div><div class="insight-title">Loan approval rate 72% — average processing time 4.2 days</div></div><span class="insight-badge ib-neu">Operations</span></div>
+      <div class="bar-row"><div class="bar-lbl">Approved</div><div class="bar-track"><div class="bar-fill" style="width:72%;background:#1a7a4a;"></div></div><div class="bar-val">72%</div></div>
+      <div class="bar-row"><div class="bar-lbl">Rejected</div><div class="bar-track"><div class="bar-fill" style="width:18%;background:#c0392b;"></div></div><div class="bar-val">18%</div></div>
+      <div class="bar-row"><div class="bar-lbl">Pending</div><div class="bar-track"><div class="bar-fill" style="width:10%;background:#b8963e;"></div></div><div class="bar-val">10%</div></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 18 · Products</div><div class="insight-title">Home Loan: fastest-growing product at +15.2% YoY</div></div><span class="insight-badge ib-up">↑ 15,2%</span></div>
+      <div class="chart-wrap h110"><canvas id="ci18" role="img" aria-label="Loan growth rate by product type"></canvas></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 19 · Provisions</div><div class="insight-title">Provision coverage ratio at 48% — below SBV minimum standard</div></div><span class="insight-badge ib-down">Under-Provisioned</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:48%;background:#c0392b;"></div></div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:5px;">48% of NPL balance covered by provisions — SBV typically requires ≥ 100%. Additional provisioning needed → current period P&amp;L impact.</p>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-header"><div><div class="insight-num">Insight 20 · Seasonality</div><div class="insight-title">Q4 is consistently the peak disbursement quarter — 34% of annual total</div></div><span class="insight-badge ib-neu">Seasonal</span></div>
+      <div class="chart-wrap h110"><canvas id="ci20" role="img" aria-label="Quarterly disbursement distribution, Q4 = 34%"></canvas></div>
+      <p class="insight-note">Increase credit officer headcount and prepare liquidity ahead of Q4 every year.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ SECTION 9: CASE STUDY ══ -->
+<div class="section" id="sec-case">
+  <p class="page-subtitle">Section 9 of 10</p>
+  <h1 class="page-title">Portfolio Case Study</h1>
+
+  <div class="hero" style="padding:2.25rem;">
+    <p class="hero-eyebrow">Portfolio Project · Banking BI · Power BI</p>
+    <h1 style="font-size:22px;">Banking Loan & Deposit Analytics Dashboard</h1>
+    <p style="margin-bottom:1rem;">A consulting-grade Power BI solution replacing manual Excel reporting with a real-time executive intelligence system for a mid-size Vietnamese commercial bank.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span class="pill" style="background:rgba(184,150,62,0.2);color:var(--gold-ll);">Power BI</span>
+      <span class="pill" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">SQL Server</span>
+      <span class="pill" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">CoreBanking Integration</span>
+      <span class="pill" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">TT02/TT22 Compliance</span>
+      <span class="pill" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">Row-Level Security</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Problem Business Loan</div>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">A private commercial bank with 80 branches and VND 85,000 Bn in total assets managed all performance reporting manually. The credit team exported from CoreBanking (T24), the deposit team used its own Excel tracker, and the risk team pulled from an internal NPL system. No unified view connected these three critical data streams. The CRO discovered branch NPL threshold breaches at the monthly provision meeting — not through proactive alerts. Branch Directors received static PDFs with no drill-down capability.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Solution Delivered</div>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.8;margin-bottom:1.25rem;">Designed and deployed a 6-page Power BI Banking Dashboard backed by a multi-fact star schema with 5 Fact tables and 7 Dimension tables. Built a SQL staging layer consolidating data from CoreBanking, credit management, and NPL classification systems — auto-refreshed at 6:00 AM daily. Implemented 3-tier Row-Level Security: Branch → Region → Head Office. Built the 5-group loan classification framework per Circular 02/2013/SBV and LDR monitoring per Circular 22/2019/SBV.</p>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+      <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:.9rem;">
+        <i class="ti ti-brand-windows" style="font-size:24px;color:#1a5fb0;display:block;margin-bottom:5px;" aria-hidden="true"></i>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);">Power BI</div>
+        <div style="font-size:10.5px;color:var(--text-muted);">6 pages · RLS · Daily refresh</div>
+      </div>
+      <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:.9rem;">
+        <i class="ti ti-database" style="font-size:24px;color:var(--gold);display:block;margin-bottom:5px;" aria-hidden="true"></i>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);">SQL Server</div>
+        <div style="font-size:10.5px;color:var(--text-muted);">ETL · Staging · Data cleansing</div>
+      </div>
+      <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:.9rem;">
+        <i class="ti ti-table" style="font-size:24px;color:#1a7a50;display:block;margin-bottom:5px;" aria-hidden="true"></i>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);">Excel / CoreBanking</div>
+        <div style="font-size:10.5px;color:var(--text-muted);">Source data · T24 export</div>
+      </div>
+      <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:.9rem;">
+        <i class="ti ti-math-function" style="font-size:24px;color:#1a5fb0;display:block;margin-bottom:5px;" aria-hidden="true"></i>
+        <div style="font-size:12px;font-weight:500;color:var(--text-primary);">DAX</div>
+        <div style="font-size:10.5px;color:var(--text-muted);">25+ measures · Time intelligence</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Business Outcomes</div>
+    <div class="outcome-grid">
+      <div class="outcome-card"><div class="outcome-num">~75%</div><div class="outcome-label">Reduction in monthly manual reporting effort</div></div>
+      <div class="outcome-card"><div class="outcome-num">6:00 SA</div><div class="outcome-label">Executives see yesterday's data at 6 AM every day</div></div>
+      <div class="outcome-card"><div class="outcome-num">3 Alerts</div><div class="outcome-label">Branch NPL threshold breaches caught in week 1 of deployment</div></div>
+      <div class="outcome-card"><div class="outcome-num">3 → 1</div><div class="outcome-label">3 siloed systems unified into 1 platform</div></div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Lessons Learned</div>
+      <ul style="font-size:12.5px;color:var(--text-muted);line-height:1.9;padding-left:1.2rem;">
+        <li>CoreBanking exports were inconsistent across branches — loan status codes differed per installation. Data standardization consumed 35% of project time.</li>
+        <li>The CRO needed daily NPL data but the system only classifies monthly — solved with a DPD-based proxy NPL calculation from daily balance files.</li>
+        <li>Branch Directors needed a mobile-optimized view — the desktop layout was too wide for tablet use in branch meetings.</li>
+        <li>Row-Level Security must be planned from Day 1, not retrofitted at go-live.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Future Enhancements</div>
+      <ul style="font-size:12.5px;color:var(--text-muted);line-height:1.9;padding-left:1.2rem;">
+        <li>Machine learning–based NPL prediction model via Python in Power BI</li>
+        <li>Customer lifetime value scoring integrated from bank CRM</li>
+        <li>Automated daily KPI email digest for Branch Directors via Power Automate</li>
+        <li>Integration with ALCO system for real-time intraday LDR monitoring</li>
+        <li>Natural language Q&amp;A for executives to query data in plain language</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 10: WEBSITE CONTENT ══ -->
+<div class="section" id="sec-web">
+  <p class="page-subtitle">Section 10 of 10</p>
+  <h1 class="page-title">Portfolio Website Content</h1>
+
+  <div class="ws-hero">
+    <p style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;">Banking BI · Power BI · SBV Compliance</p>
+    <h2>Real-Time Intelligence For<br>Loan, Deposit &amp; Risk Management</h2>
+    <p>I build Power BI banking dashboards that give CEOs, CFOs, CROs, and Branch Directors a unified daily view of portfolio performance, liquidity health, and credit risk — aligned with Vietnam SBV (NHNN) standards.</p>
+    <a class="btn-primary" href="mailto:hello@yoursite.com">Book a Banking BI Discovery Call →</a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">About This Project <span class="badge">Banking BI Portfolio</span></div>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">This project demonstrates a full-scope BI solution for commercial banks seeking to replace manual Excel reporting with an automated, standards-compliant analytics ecosystem. Designed for Vietnamese banking specifics: 5-group NPL classification per TT02, LDR per Circular 22, branch/region/HQ organizational structure, and common loan and deposit products in the Vietnamese market.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Challenges I Solved</div>
+    <div class="three-col">
+      <div style="text-align:center;padding:.75rem;">
+        <i class="ti ti-files-off" style="font-size:28px;color:var(--gold);display:block;margin-bottom:7px;" aria-hidden="true"></i>
+        <div style="font-size:12.5px;font-weight:500;color:var(--text-primary);margin-bottom:3px;">Siloed Systems</div>
+        <div style="font-size:11.5px;color:var(--text-muted);line-height:1.5;">CoreBanking + Deposits + NPL unified into 1 data model</div>
+      </div>
+      <div style="text-align:center;padding:.75rem;">
+        <i class="ti ti-clock-off" style="font-size:28px;color:var(--gold);display:block;margin-bottom:7px;" aria-hidden="true"></i>
+        <div style="font-size:12.5px;font-weight:500;color:var(--text-primary);margin-bottom:3px;">Lagging Reports</div>
+        <div style="font-size:11.5px;color:var(--text-muted);line-height:1.5;">Monthly PDFs replaced by 6:00 AM automated daily refresh</div>
+      </div>
+      <div style="text-align:center;padding:.75rem;">
+        <i class="ti ti-alert-triangle" style="font-size:28px;color:var(--gold);display:block;margin-bottom:7px;" aria-hidden="true"></i>
+        <div style="font-size:12.5px;font-weight:500;color:var(--text-primary);margin-bottom:3px;">Hidden Risks</div>
+        <div style="font-size:11.5px;color:var(--text-muted);line-height:1.5;">NPL threshold breaches detected same day, not at month-end meetings</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Key Results <span class="badge badge-green">Impact</span></div>
+    <div class="kpi-grid">
+      <div class="kpi-card pos"><div class="kpi-label">Reporting Effort</div><div class="kpi-value">–75%</div><div class="kpi-delta up">Manual effort saved</div></div>
+      <div class="kpi-card info"><div class="kpi-label">Data Freshness</div><div class="kpi-value">Hàng ngày</div><div class="kpi-delta up">Was: monthly PDF</div></div>
+      <div class="kpi-card risk"><div class="kpi-label">Alert NPL</div><div class="kpi-value">3 CN</div><div class="kpi-delta up">Week 1 of go-live</div></div>
+      <div class="kpi-card"><div class="kpi-label">Systems Unified</div><div class="kpi-value">3 → 1</div><div class="kpi-delta up">Single platform</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Technologies Used</div>
+    <div>
+      <span class="pill pill-blue">Power BI Desktop & Service</span>
+      <span class="pill pill-gold">DAX & Time Intelligence</span>
+      <span class="pill pill-green">SQL Server / T-SQL</span>
+      <span class="pill pill-blue">Power Query / M Language</span>
+      <span class="pill pill-gold">Multi-Fact Star Schema</span>
+      <span class="pill pill-green">Row-Level Security (RLS)</span>
+      <span class="pill pill-red">NPL Classification TT02/SBV</span>
+      <span class="pill pill-blue">LDR per Circular 22/SBV</span>
+      <span class="pill pill-gold">CoreBanking Integration</span>
+      <span class="pill pill-green">Scheduled Daily Refresh</span>
+    </div>
+  </div>
+
+  <div class="card" style="background:var(--navy);border-color:transparent;">
+    <div style="text-align:center;padding:.75rem;">
+      <p style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;">Ready to Modernize Your Bank's Reporting?</p>
+      <p style="font-family:'Playfair Display',serif;font-size:18px;color:#fff;margin-bottom:.75rem;">Build Your Banking Intelligence Platform</p>
+      <p style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:1.25rem;line-height:1.7;">Book a free 30-minute discovery call. I will review your current reporting setup and propose a BI solution tailored to your bank's scale and operational needs.</p>
+      <a class="btn-primary" href="mailto:hello@yoursite.com">Get in Touch →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id,tab){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  tab.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+const B='#1560a8',BL='#b5d4f4',BD='#0c3a6e',
+      G='#1a7a4a',GL='#9fe1cb',
+      R='#c0392b',RL='#f5c6c2',
+      GO='#b8963e',GR='#b4b2a9',AM='#e8963e';
+const nL={legend:{display:false}};
+const tS={color:'#6a82a0',font:{size:10}};
+const gC={color:'rgba(13,35,64,0.07)',drawBorder:false};
+const bO={responsive:true,maintainAspectRatio:false};
+
+new Chart(document.getElementById('ci1'),{type:'line',data:{labels:['Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'],datasets:[{data:[35800,37000,38200,39100,40000,41200,42400,43100,43900,44800,45600,46250],borderColor:B,backgroundColor:'transparent',borderWidth:2,pointRadius:2,pointBackgroundColor:B},{data:[33200,34200,35000,35800,36600,37500,38800,39500,40500,41400,42000,42900],borderColor:GR,backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:0}]},options:{...bO,plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K Bn'},grid:gC}}}});
+
+new Chart(document.getElementById('ci2'),{type:'line',data:{labels:['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'],datasets:[{label:'HĐV',data:[45500,47000,48500,49800,51200,52600,53900,55000,55900,56600,57320],borderColor:G,backgroundColor:'transparent',borderWidth:2,pointRadius:2},{label:'Dư nợ',data:[37000,38200,39100,40000,41200,42400,43100,43900,44800,45600,46250],borderColor:B,backgroundColor:'transparent',borderWidth:2,pointRadius:2,borderDash:[4,3]}]},options:{...bO,plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K Bn'},grid:gC}}}});
+
+new Chart(document.getElementById('ci4'),{type:'line',data:{labels:['Q1 NN','Q2 NN','Q3 NN','Q4 NN','Q1','Q2','Q3','Q4'],datasets:[{data:[38,38,37,37,36,35,35,34],borderColor:G,backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:G,borderDash:[5,3]}]},options:{...bO,plugins:nL,scales:{x:{ticks:{...tS,maxRotation:20},grid:{display:false}},y:{min:30,max:42,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+new Chart(document.getElementById('ci6'),{type:'bar',data:{labels:['North','South','Central Region','East','Central Highlands'],datasets:[{data:[1.8,2.1,3.4,2.6,2.2],backgroundColor:[G,G,R,AM,G],borderWidth:0}]},options:{...bO,plugins:nL,scales:{x:{ticks:{...tS,maxRotation:20},grid:{display:false}},y:{min:0,max:5,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+new Chart(document.getElementById('ci7'),{type:'line',data:{labels:['T1','T2','T3','T4','T5','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],datasets:[{data:[78,79,80,81,81,80,82,83,82,81,81,80.7],borderColor:B,backgroundColor:'transparent',borderWidth:2,pointRadius:2},{data:[80,80,80,80,80,80,80,80,80,80,80,80],borderColor:R,backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:0}]},options:{...bO,plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{min:70,max:88,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+new Chart(document.getElementById('ci10'),{type:'bar',data:{labels:['Home Loan','Vay Mua Xe','Vay Tiêu Dùng','Vay Business Loan','Vay SME'],datasets:[{data:[0.8,1.4,2.6,3.8,4.2],backgroundColor:[G,G,AM,R,R],borderWidth:0}]},options:{...bO,indexAxis:'y',plugins:nL,scales:{x:{min:0,max:6,ticks:{...tS,callback:v=>v+'%'},grid:gC},y:{ticks:tS,grid:{display:false}}}}});
+
+new Chart(document.getElementById('ci11'),{type:'bar',data:{labels:['Da Nang','Hue','Can Tho','Hai Phong','Biên Hòa'],datasets:[{data:[24.3,18.7,15.2,13.8,11.4],backgroundColor:[GO,B,B,B,B],borderWidth:0}]},options:{...bO,indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>v+'%'},grid:gC},y:{ticks:tS,grid:{display:false}}}}});
+
+new Chart(document.getElementById('ci13'),{type:'bar',data:{labels:['T6','T7','T8','T9','T10','T11'],datasets:[{data:[4550,3250,2930,5200,2440,1950],backgroundColor:[R,R,AM,AM,B,B],borderWidth:0}]},options:{...bO,plugins:nL,scales:{x:{ticks:tS,grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(1)+'K Bn'},grid:gC}}}});
+
+new Chart(document.getElementById('ci15'),{type:'bar',data:{labels:['HCM Quận 1','Hanoi HQ','Quận 7','Ba Đình','Thủ Đức'],datasets:[{data:[6810,5080,4300,3880,3230],backgroundColor:[GO,B,BL,BL,BL],borderWidth:0}]},options:{...bO,indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>(v/1000).toFixed(1)+'K Bn'},grid:gC},y:{ticks:tS,grid:{display:false}}}}});
+
+new Chart(document.getElementById('ci18'),{type:'bar',data:{labels:['Home Loan','Vay Mua Xe','Vay Personal Loan','Vay Business Loan','Vay CKH DN'],datasets:[{data:[15.2,10.4,7.8,6.2,4.1],backgroundColor:[GO,B,BL,BL,GR],borderWidth:0}]},options:{...bO,indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>v+'%'},grid:gC},y:{ticks:tS,grid:{display:false}}}}});
+
+new Chart(document.getElementById('ci20'),{type:'bar',data:{labels:['Quý 1','Quý 2','Quý 3','Quý 4'],datasets:[{data:[18,22,26,34],backgroundColor:[BL,B,B,GO],borderWidth:0}]},options:{...bO,plugins:nL,scales:{x:{ticks:tS,grid:{display:false}},y:{ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+// ══ DASHBOARD CHARTS ══
+const MN=['Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'];
+const MNS=['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'];
+const CN5=['Hanoi HQ','HCMC D1','Da Nang','Hai Phong','Can Tho'];
+const PK5=['Retail','SME','Corporate','VIP','Mass Market'];
+const SP_LOAN=['Home Loan','Car Loan','Personal Loan','Business Loan','SME'];
+const SP_HDV=['Savings CASA','Current CASA','Term 6M','Term 12M','Term 24M'];
+
+function dashChart(id,cfg){
+  const el=document.getElementById(id);
+  if(el) new Chart(el,{...cfg,options:{...bO,...cfg.options}});
+}
+
+// T1: Xu hướng DN & HĐV
+dashChart('d1_trend',{type:'line',data:{labels:MN,datasets:[
+  {label:'Dư nợ',data:[35800,37000,38200,39100,40000,41200,42400,43100,43900,44800,45600,46250],borderColor:B,backgroundColor:'rgba(21,96,168,0.07)',borderWidth:2,pointRadius:2,fill:true},
+  {label:'HĐV',data:[44200,45500,47000,48500,49800,51200,52600,53900,55000,55900,56600,57320],borderColor:G,backgroundColor:'transparent',borderWidth:2,pointRadius:2,borderDash:[4,3]}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC}}}});
+
+// T1: LDR
+dashChart('d1_ldr',{type:'line',data:{labels:MN,datasets:[
+  {data:[78.4,79.1,79.8,80.2,80.4,80.1,80.6,80.8,80.5,80.4,80.5,80.7],borderColor:B,backgroundColor:'rgba(21,96,168,0.06)',borderWidth:2,pointRadius:2,fill:true},
+  {data:[80,80,80,80,80,80,80,80,80,80,80,80],borderColor:R,borderWidth:1.5,borderDash:[5,3],pointRadius:0}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{min:76,max:84,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+// T1: DN theo SP (donut)
+dashChart('d1_loan_sp',{type:'doughnut',data:{labels:SP_LOAN,datasets:[{data:[18200,6800,5100,9800,6350],backgroundColor:[B,'#4a9ae0','#7bbcf0',G,GO],borderWidth:0}]},options:{plugins:{legend:{display:true,position:'bottom',labels:{font:{size:9},color:'#6a82a0',boxWidth:10,padding:6}}},cutout:'60%'}});
+
+// T1: HĐV theo SP (donut)
+dashChart('d1_hdv_sp',{type:'doughnut',data:{labels:SP_HDV,datasets:[{data:[10800,8730,12400,16900,8490],backgroundColor:[G,'#4ab890','#7dd4b0',B,GO],borderWidth:0}]},options:{plugins:{legend:{display:true,position:'bottom',labels:{font:{size:9},color:'#6a82a0',boxWidth:10,padding:6}}},cutout:'60%'}});
+
+// T1: Top CN
+dashChart('d1_top_cn',{type:'bar',data:{labels:CN5,datasets:[{data:[5080,4900,3850,2960,2420],backgroundColor:[GO,B,B,B,B],borderWidth:0,borderRadius:3}]},options:{indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>(v/1000).toFixed(1)+'K'},grid:gC},y:{ticks:{...tS},grid:{display:false}}}}});
+
+// T2: Xu hướng DN & Giải ngân
+dashChart('d2_trend',{type:'bar',data:{labels:MN,datasets:[
+  {type:'line',label:'Dư nợ',data:[35800,37000,38200,39100,40000,41200,42400,43100,43900,44800,45600,46250],borderColor:B,backgroundColor:'transparent',borderWidth:2,pointRadius:2,yAxisID:'y'},
+  {type:'bar',label:'Giải ngân',data:[2100,2200,2350,2180,2400,2600,2500,2650,2800,2750,2900,2960],backgroundColor:'rgba(21,96,168,0.18)',borderWidth:0,borderRadius:3,yAxisID:'y2'}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC,position:'left'},y2:{ticks:{...tS,callback:v=>v+'Bn'},grid:{display:false},position:'right'}}}});
+
+// T2: DN theo SP
+dashChart('d2_sp',{type:'bar',data:{labels:SP_LOAN,datasets:[{data:[18200,6800,5100,9800,6350],backgroundColor:[B,'#4a9ae0','#7bbcf0',G,GO],borderWidth:0,borderRadius:4}]},options:{indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC},y:{ticks:{...tS},grid:{display:false}}}}});
+
+// T2: DN theo phân khúc
+dashChart('d2_pk',{type:'doughnut',data:{labels:PK5,datasets:[{data:[14800,11560,16200,3690,0],backgroundColor:[B,GO,G,AM,'#ccc'],borderWidth:0}]},options:{plugins:{legend:{display:true,position:'right',labels:{font:{size:9},color:'#6a82a0',boxWidth:10,padding:5}}},cutout:'55%'}});
+
+// T2: Lịch đáo hạn
+dashChart('d2_maturity',{type:'bar',data:{labels:['<3M','3-6M','6-12M','1-3Y','3-5Y','>5Y'],datasets:[{data:[2100,3400,5200,14800,11200,9550],backgroundColor:['#e53e3e','#dd6b20','#d69e2e',B,B,G],borderWidth:0,borderRadius:3}]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC}}}});
+
+// T3: HĐV & CASA trend
+dashChart('d3_trend',{type:'line',data:{labels:MN,datasets:[
+  {type:'line',label:'HĐV',data:[44200,45500,47000,48500,49800,51200,52600,53900,55000,55900,56600,57320],borderColor:G,backgroundColor:'rgba(26,122,74,0.07)',borderWidth:2,pointRadius:2,fill:true,yAxisID:'y'},
+  {type:'line',label:'CASA%',data:[38,38,37.5,37,36.8,36,35.5,35.2,35,34.8,34.5,34.1],borderColor:AM,backgroundColor:'transparent',borderWidth:2,pointRadius:2,borderDash:[4,3],yAxisID:'y2'}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC,position:'left'},y2:{min:30,max:42,ticks:{...tS,callback:v=>v+'%'},grid:{display:false},position:'right'}}}});
+
+// T3: KKH vs CKH
+dashChart('d3_casa',{type:'bar',data:{labels:MN,datasets:[
+  {label:'KKH (CASA)',data:[16800,17100,17400,17600,17800,18000,18200,18500,18800,19000,19200,19530],backgroundColor:G,borderWidth:0,borderRadius:2},
+  {label:'Có Period Hạn',data:[27400,28400,29600,30900,32000,33200,34400,35400,36200,36900,37400,37790],backgroundColor:'rgba(26,122,74,0.25)',borderWidth:0,borderRadius:2}
+]},options:{plugins:nL,scales:{x:{stacked:true,ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{stacked:true,ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC}}}});
+
+// T3: HĐV theo SP
+dashChart('d3_sp',{type:'bar',data:{labels:SP_HDV,datasets:[{data:[10800,8730,12400,16900,8490],backgroundColor:[G,'#4ab890','#7dd4b0',B,GO],borderWidth:0,borderRadius:4}]},options:{indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC},y:{ticks:{...tS},grid:{display:false}}}}});
+
+// T3: Đáo hạn CKH
+dashChart('d3_maturity',{type:'bar',data:{labels:['Jun','Jul','Aug','Sep','Oct','Nov','Dec'],datasets:[{data:[4550,3250,2930,5200,2440,1950,3100],backgroundColor:['#e53e3e','#e53e3e',AM,AM,B,B,G],borderWidth:0,borderRadius:3}]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(1)+'K'},grid:gC}}}});
+
+// T4: DN vs HĐV per branch
+dashChart('d4_matrix',{type:'bar',data:{labels:['Hanoi HQ','HCMC D1','Da Nang','Hai Phong','Can Tho','Hue','Dong Nai','Binh Duong'],datasets:[
+  {label:'Dư nợ',data:[5080,4900,3850,2960,2420,1850,1720,1650],backgroundColor:B,borderWidth:0,borderRadius:3},
+  {label:'HĐV',data:[6200,6810,4900,3640,2950,2260,2100,1980],backgroundColor:G,borderWidth:0,borderRadius:3}
+]},options:{plugins:{legend:{display:true,position:'top',labels:{font:{size:9},color:'#6a82a0',boxWidth:10}}},scales:{x:{ticks:{...tS,maxRotation:20},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(1)+'K'},grid:gC}}}});
+
+// T4: NPL per branch
+dashChart('d4_npl',{type:'bar',data:{labels:['HCMC D1','Hanoi HQ','Da Nang','Can Tho','Hai Phong','Central B','Central A','Central Highlands'],datasets:[
+  {data:[1.8,2.0,2.2,2.4,2.6,4.2,3.1,2.9],backgroundColor:['#1a7a50','#1a7a50','#1a5fb0','#b8882a','#b8882a','#c0362b','#c0362b','#b8882a'],borderWidth:0,borderRadius:3},
+  {type:'line',data:[3,3,3,3,3,3,3,3],borderColor:R,borderWidth:1.5,borderDash:[5,3],pointRadius:0}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:20},grid:{display:false}},y:{min:0,max:5,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+// T4: Growth per branch
+dashChart('d4_growth',{type:'bar',data:{labels:CN5.concat(['Hue','Dong Nai','Binh Duong']),datasets:[{data:[12.4,10.8,24.3,9.2,11.5,8.4,7.9,6.8],backgroundColor:['#1a5fb0','#1a5fb0',GO,'#1a5fb0','#1a5fb0','#1a5fb0','#1a5fb0','#1a5fb0'],borderWidth:0,borderRadius:3}]},options:{indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>v+'%'},grid:gC},y:{ticks:{...tS},grid:{display:false}}}}});
+
+// T5: DN & HĐV theo phân khúc
+dashChart('d5_seg',{type:'bar',data:{labels:PK5,datasets:[
+  {label:'Dư nợ',data:[5580,11560,16200,12960,0],backgroundColor:B,borderWidth:0,borderRadius:3},
+  {label:'HĐV',data:[18400,9800,12600,10800,5720],backgroundColor:G,borderWidth:0,borderRadius:3}
+]},options:{plugins:{legend:{display:true,position:'top',labels:{font:{size:9},color:'#6a82a0',boxWidth:10}}},scales:{x:{ticks:{...tS,maxRotation:0},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC}}}});
+
+// T5: Số KH & DN BQ
+dashChart('d5_avg',{type:'bar',data:{labels:PK5,datasets:[
+  {type:'bar',label:'Số KH (trái)',data:[68400,22800,540,1890,17000],backgroundColor:'rgba(21,96,168,0.2)',borderWidth:0,borderRadius:3,yAxisID:'y'},
+  {type:'line',label:'Avg Loan/Customer (Tỷ)',data:[0.082,0.507,30.0,6.86,0],borderColor:GO,borderWidth:2,pointRadius:4,pointBackgroundColor:GO,yAxisID:'y2'}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0},grid:{display:false}},y:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC,position:'left'},y2:{ticks:{...tS,callback:v=>v+'Bn'},grid:{display:false},position:'right'}}}});
+
+// T5: NPL theo phân khúc
+dashChart('d5_npl',{type:'bar',data:{labels:PK5,datasets:[{data:[2.1,5.8,0.4,0.6,3.2],backgroundColor:['#1a5fb0','#c0362b','#1a7a50','#1a7a50','#b8882a'],borderWidth:0,borderRadius:4}]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0},grid:{display:false}},y:{ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+// T6: NPL trend + 3% line
+dashChart('d6_npl_trend',{type:'line',data:{labels:['T1','T2','T3','T4','T5','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],datasets:[
+  {data:[2.1,2.15,2.2,2.25,2.3,2.35,2.4,2.45,2.55,2.62,2.72,2.80],borderColor:R,backgroundColor:'rgba(192,54,43,0.08)',borderWidth:2,pointRadius:3,fill:true},
+  {data:[3,3,3,3,3,3,3,3,3,3,3,3],borderColor:'#b8882a',borderWidth:1.5,borderDash:[5,3],pointRadius:0}
+]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:0,autoSkip:true,maxTicksLimit:6},grid:{display:false}},y:{min:1.8,max:3.5,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+// T6: 5 nhóm nợ TT02
+dashChart('d6_nhom',{type:'bar',data:{labels:['Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'],datasets:[
+  {label:'Group 1',data:[38200,38800,39200,39800,40200,40800,41400,42000,42500],backgroundColor:'#1a7a50',borderWidth:0},
+  {label:'Group 2',data:[1800,1900,1950,2050,2100,2150,2200,2300,2420],backgroundColor:'#b8882a',borderWidth:0},
+  {label:'Group 3',data:[580,610,640,680,720,760,820,880,950],backgroundColor:'#dd6b20',borderWidth:0},
+  {label:'Group 4',data:[280,300,320,340,360,390,420,450,490],backgroundColor:R,borderWidth:0},
+  {label:'Group 5',data:[340,370,390,430,470,500,540,580,640],backgroundColor:'#8b0000',borderWidth:0}
+]},options:{plugins:{legend:{display:true,position:'top',labels:{font:{size:9},color:'#6a82a0',boxWidth:10}}},scales:{x:{stacked:true,ticks:{...tS,maxRotation:0},grid:{display:false}},y:{stacked:true,ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC}}}});
+
+// T6: Aging bucket
+dashChart('d6_aging',{type:'bar',data:{labels:['Current','1-30 DPD','31-60 DPD','61-90 DPD','91-180 DPD','>180 DPD'],datasets:[{data:[43500,1850,1100,620,480,700],backgroundColor:['#1a7a50','#b8882a','#dd6b20',R,R,'#8b0000'],borderWidth:0,borderRadius:3}]},options:{indexAxis:'y',plugins:nL,scales:{x:{ticks:{...tS,callback:v=>(v/1000).toFixed(0)+'K'},grid:gC},y:{ticks:{...tS},grid:{display:false}}}}});
+
+// T6: NPL theo SP
+dashChart('d6_npl_sp',{type:'bar',data:{labels:SP_LOAN,datasets:[{data:[0.8,1.4,3.2,4.8,5.8],backgroundColor:['#1a7a50','#1a7a50','#b8882a',R,R],borderWidth:0,borderRadius:4}]},options:{plugins:nL,scales:{x:{ticks:{...tS,maxRotation:20},grid:{display:false}},y:{min:0,max:7,ticks:{...tS,callback:v=>v+'%'},grid:gC}}}});
+
+</script>
+</body>
+</html>
