@@ -68,6 +68,9 @@ h1.page-title{font-family:'Playfair Display',serif;font-size:27px;font-weight:70
 .vn-banner{background:linear-gradient(90deg,var(--red) 0%,#8b1a10 50%,var(--navy) 100%);height:4px;border-radius:2px;margin-bottom:1.5rem}
 
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.5rem}
+.kpi-grid-6{grid-template-columns:repeat(6,1fr)}
+@media(max-width:900px){.kpi-grid-6{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:540px){.kpi-grid-6{grid-template-columns:repeat(2,1fr)}}
 .kpi-card{background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:1rem;position:relative;overflow:hidden;box-shadow:var(--shadow)}
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold)}
 .kpi-card.risk::before{background:var(--red)}
@@ -521,7 +524,7 @@ td.formula{font-family:monospace;font-size:10.5px;background:rgba(43,125,233,0.1
   <!-- ── PAGE 1: EXECUTIVE OVERVIEW ── -->
   <div class="card">
     <div class="card-title">Page 1 — Executive Overview <span class="badge">CEO · CFO · Board</span></div>
-    <div class="kpi-grid">
+    <div class="kpi-grid kpi-grid-6">
       <div class="kpi-card info"><div class="kpi-label">Total Loan Outstanding</div><div class="kpi-value">VND 46,250 Bn</div><div class="kpi-delta up">↑ 8.4% so T-1</div></div>
       <div class="kpi-card pos"><div class="kpi-label">Total Deposits</div><div class="kpi-value">VND 57,320 Bn</div><div class="kpi-delta up">↑ 11.2% so T-1</div></div>
       <div class="kpi-card info"><div class="kpi-label">Loan Growth</div><div class="kpi-value">8.4%</div><div class="kpi-delta neu">vs Target: 95%</div></div>
@@ -559,7 +562,7 @@ td.formula{font-family:monospace;font-size:10.5px;background:rgba(43,125,233,0.1
   <!-- ── PAGE 2: LOAN ANALYTICS ── -->
   <div class="card">
     <div class="card-title">Page 2 — Loan Portfolio Analytics <span class="badge badge-blue">Credit Department</span></div>
-    <div class="kpi-grid">
+    <div class="kpi-grid kpi-grid-6">
       <div class="kpi-card info"><div class="kpi-label">Total Loan Outstanding</div><div class="kpi-value">VND 46,250 Bn</div></div>
       <div class="kpi-card info"><div class="kpi-label">New Disbursement MTD</div><div class="kpi-value">2,960 Bn</div><div class="kpi-delta up">↑ Above Target</div></div>
       <div class="kpi-card"><div class="kpi-label">Loan Customers</div><div class="kpi-value">42,180</div></div>
@@ -592,7 +595,7 @@ td.formula{font-family:monospace;font-size:10.5px;background:rgba(43,125,233,0.1
   <!-- ── PAGE 3: DEPOSIT ANALYTICS ── -->
   <div class="card">
     <div class="card-title">Page 3 — Deposit Analytics <span class="badge badge-green">Funding Department</span></div>
-    <div class="kpi-grid">
+    <div class="kpi-grid kpi-grid-6">
       <div class="kpi-card pos"><div class="kpi-label">Total Deposits</div><div class="kpi-value">VND 57,320 Bn</div></div>
       <div class="kpi-card pos"><div class="kpi-label">CASA Balance</div><div class="kpi-value">19,530 Bn</div><div class="kpi-delta down">CASA 34%</div></div>
       <div class="kpi-card"><div class="kpi-label">Term Deposits</div><div class="kpi-value">37,790 Bn</div></div>
@@ -675,7 +678,7 @@ td.formula{font-family:monospace;font-size:10.5px;background:rgba(43,125,233,0.1
   <!-- ── PAGE 6: RISK MONITORING ── -->
   <div class="card">
     <div class="card-title">Page 6 — Risk Monitoring <span class="badge badge-risk">CRO</span></div>
-    <div class="kpi-grid">
+    <div class="kpi-grid kpi-grid-6">
       <div class="kpi-card risk"><div class="kpi-label">NPL Balance</div><div class="kpi-value">1,295 Bn</div><div class="kpi-delta down">↑ 68 Bn PM</div></div>
       <div class="kpi-card risk"><div class="kpi-label">NPL Ratio</div><div class="kpi-value">2.80%</div><div class="kpi-delta down">↑ 0.3pp</div></div>
       <div class="kpi-card risk"><div class="kpi-label">Overdue Balance</div><div class="kpi-value">2,313 Bn</div></div>
