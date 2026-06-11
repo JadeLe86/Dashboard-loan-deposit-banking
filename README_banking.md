@@ -261,8 +261,8 @@ ldr  casa  star-schema  row-level-security  corebanking  vietnam
 
 ## 📬 Contact
 
-- 🔗 LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)
-- 📧 Email: [hello@yoursite.com](mailto:hello@yoursite.com)
+- 🔗 LinkedIn: https://www.linkedin.com/in/thuy-linh-le-2aa7b810a/
+- 📧 Email: linh.ltt06@gmail.com
 - 🌐 Portfolio: [yoursite.com](https://yoursite.com)
 
 ---
