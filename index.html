@@ -68,6 +68,9 @@ h1.page-title{font-family:'Playfair Display',serif;font-size:27px;font-weight:70
 .vn-banner{background:linear-gradient(90deg,var(--red) 0%,#8b1a10 50%,var(--navy) 100%);height:4px;border-radius:2px;margin-bottom:1.5rem}
 
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.5rem}
+.kpi-grid-6{grid-template-columns:repeat(6,1fr)}
+@media(max-width:900px){.kpi-grid-6{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:540px){.kpi-grid-6{grid-template-columns:repeat(2,1fr)}}
 .kpi-card{background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:1rem;position:relative;overflow:hidden;box-shadow:var(--shadow)}
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold)}
 .kpi-card.risk::before{background:var(--red)}
@@ -521,7 +524,7 @@ td.formula{font-family:monospace;font-size:10.5px;background:rgba(43,125,233,0.1
   <!-- ── TRANG 1: TỔNG QUAN ĐIỀU HÀNH ── -->
   <div class="card">
     <div class="card-title">Trang 1 — Tổng Quan Điều Hành <span class="badge">TGĐ · CFO · HĐQT</span></div>
-    <div class="kpi-grid">
+    <div class="kpi-grid kpi-grid-6">
       <div class="kpi-card info"><div class="kpi-label">Tổng Dư Nợ</div><div class="kpi-value">46.250 Tỷ</div><div class="kpi-delta up">↑ 8,4% so T-1</div></div>
       <div class="kpi-card pos"><div class="kpi-label">Tổng HĐV</div><div class="kpi-value">57.320 Tỷ</div><div class="kpi-delta up">↑ 11,2% so T-1</div></div>
       <div class="kpi-card info"><div class="kpi-label">Tăng Trưởng TD</div><div class="kpi-value">8,4%</div><div class="kpi-delta neu">KH: 95%</div></div>
@@ -559,7 +562,7 @@ td.formula{font-family:monospace;font-size:10.5px;background:rgba(43,125,233,0.1
   <!-- ── TRANG 2: TÍN DỤNG ── -->
   <div class="card">
     <div class="card-title">Trang 2 — Phân Tích Danh Mục Tín Dụng <span class="badge badge-blue">Phòng Tín Dụng</span></div>
-    <div class="kpi-grid">
+    <div class="kpi-grid kpi-grid-6">
       <div class="kpi-card info"><div class="kpi-label">Tổng Dư Nợ</div><div class="kpi-value">46.250 Tỷ</div></div>
       <div class="kpi-card info"><div class="kpi-label">Giải Ngân MTD</div><div class="kpi-value">2.960 Tỷ</div><div class="kpi-delta up">↑ Vượt KH</div></div>
       <div class="kpi-card"><div class="kpi-label">KH Tín Dụng</div><div class="kpi-value">42.180 KH</div></div>
@@ -592,7 +595,7 @@ td.formula{font-family:monospace;font-size:10.5px;background:rgba(43,125,233,0.1
   <!-- ── TRANG 3: HUY ĐỘNG VỐN ── -->
   <div class="card">
     <div class="card-title">Trang 3 — Phân Tích Huy Động Vốn <span class="badge badge-green">Phòng HĐV</span></div>
-    <div class="kpi-grid">
+    <div class="kpi-grid kpi-grid-6">
       <div class="kpi-card pos"><div class="kpi-label">Tổng HĐV</div><div class="kpi-value">57.320 Tỷ</div></div>
       <div class="kpi-card pos"><div class="kpi-label">Số Dư KKH</div><div class="kpi-value">19.530 Tỷ</div><div class="kpi-delta down">CASA 34%</div></div>
       <div class="kpi-card"><div class="kpi-label">TG Kỳ Hạn</div><div class="kpi-value">37.790 Tỷ</div></div>
@@ -675,7 +678,7 @@ td.formula{font-family:monospace;font-size:10.5px;background:rgba(43,125,233,0.1
   <!-- ── TRANG 6: RỦI RO ── -->
   <div class="card">
     <div class="card-title">Trang 6 — Giám Sát Rủi Ro <span class="badge badge-risk">Phó TGĐ Rủi Ro</span></div>
-    <div class="kpi-grid">
+    <div class="kpi-grid kpi-grid-6">
       <div class="kpi-card risk"><div class="kpi-label">Dư Nợ Xấu</div><div class="kpi-value">1.295 Tỷ</div><div class="kpi-delta down">↑ 68 Tỷ T-1</div></div>
       <div class="kpi-card risk"><div class="kpi-label">Tỷ Lệ NPL</div><div class="kpi-value">2,80%</div><div class="kpi-delta down">↑ 0,3pp</div></div>
       <div class="kpi-card risk"><div class="kpi-label">Dư Nợ Quá Hạn</div><div class="kpi-value">2.313 Tỷ</div></div>
